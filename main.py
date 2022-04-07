@@ -26,8 +26,13 @@ df_unfallatlas['key'] = df_unfallatlas['ULAND'].astype(str).str.zfill(2) \
 
 
 #Ausgabe der Unfälle in Siegen im Jahr 2020.
-df_unfallatlas_year = df_unfallatlas.loc[df_unfallatlas['UJAHR'] == 2020]
-print('Anzahl der Unfälle in Siegen:', len(df_unfallatlas_year.loc[df_unfallatlas_year['key'] == '05970040']))
+df_unfallatlas_2020 = df_unfallatlas.loc[df_unfallatlas['UJAHR'] == 2020]
+print('\nAnzahl der Unfälle in Siegen:', len(df_unfallatlas_2020.loc[df_unfallatlas_2020['key'] == '05970040']))
 
 
+#Abfrage der Anzahl der Unfälle nach Jahr und AGS.
+jahr = int(input('\nJahr: '))
+ags = input('Gemeinde: ')
+df_unfallatlas_year = df_unfallatlas.loc[df_unfallatlas['UJAHR'] == jahr]
+print(f'\nAnzahl der Unfälle in {ags}:', len(df_unfallatlas_year.loc[df_unfallatlas_year['key'] == ags]))
 
