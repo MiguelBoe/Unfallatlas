@@ -1,7 +1,9 @@
 import pandas as pd
 import glob
 
+
 #Einlesen der Daten und Verknüpfung in einem DataFrame.
+
 files = glob.glob('data/*.csv')
 
 df_unfallatlas = pd.DataFrame()
@@ -19,20 +21,22 @@ df_unfallatlas.drop(['FID', 'OBJECTID', 'OBJECTID_1', 'LICHT', 'IstStrasse', 'Is
 
 df_unfallatlas = df_unfallatlas.iloc[:, [0,1,2,3,4,5,6,7,8,9,10,11,22,12,13,14,15,16,23,17,18,19,20,21,24]]
 
-df_unfallatlas['key'] = df_unfallatlas['ULAND'].astype(str).str.zfill(2) \
+df_unfallatlas['AGS'] = df_unfallatlas['ULAND'].astype(str).str.zfill(2) \
                       + df_unfallatlas['UREGBEZ'].astype(str).str.zfill(1) \
                       + df_unfallatlas['UKREIS'].astype(str).str.zfill(2) \
                       + df_unfallatlas['UGEMEINDE'].astype(str).str.zfill(3)
 
+df_unfallatlas = df_unfallatlas.reset_index()
+
 
 #Ausgabe der Unfälle in Siegen im Jahr 2020.
 df_unfallatlas_2020 = df_unfallatlas.loc[df_unfallatlas['UJAHR'] == 2020]
-print('\nAnzahl der Unfälle in Siegen:', len(df_unfallatlas_2020.loc[df_unfallatlas_2020['key'] == '05970040']))
+print('\nAnzahl der Unfälle in Siegen:', len(df_unfallatlas_2020.loc[df_unfallatlas_2020['AGS'] == '05970040']))
 
 
 #Abfrage der Anzahl der Unfälle nach Jahr und AGS.
 jahr = int(input('\nJahr: '))
 ags = input('Gemeinde: ')
 df_unfallatlas_year = df_unfallatlas.loc[df_unfallatlas['UJAHR'] == jahr]
-print(f'\nAnzahl der Unfälle in {ags}:', len(df_unfallatlas_year.loc[df_unfallatlas_year['key'] == ags]))
+print(f'\nAnzahl der Unfälle in {ags}:', len(df_unfallatlas_year.loc[df_unfallatlas_year['AGS'] == ags]))
 
