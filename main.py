@@ -158,6 +158,7 @@ map.showMap()
 
 
 # Darstellung der Korrelation der Attribute
+sns.set()
 plt.figure(figsize=(15, 10))
 plt.title('Korrelation der Attribute', fontsize=25, pad=20)
 sns.heatmap(df_unfallatlas.corr(), annot=True, robust=True)
@@ -179,3 +180,38 @@ results = pd.DataFrame(decision_tree_classification.predict(X_test), index=X_tes
 # Überprüfung der Genauigkeit des Modells.
 score = accuracy_score(y_test, results)
 print('\nAccuracy-Score des Modells:', round(score, 2))
+
+# Analyse._____________________________________________________________________________________________________________________
+
+
+# Darstellung der Wochentage mit den meisten Unfällen pro Jahr.
+weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
+accweekday = df_unfallatlas.groupby(['UJAHR', 'UWOCHENTAG']).size()
+accweekday = accweekday.rename_axis(['UJAHR', 'UWOCHENTAG']).unstack('UWOCHENTAG')
+accweekday.columns = weekdays
+
+plt.figure(figsize=(15, 10))
+sns.heatmap(accweekday, cmap='plasma_r')
+plt.title('Unfälle nach Wochentagen pro Jahr', fontsize=25, pad=20)
+plt.xticks(fontsize=15)
+plt.yticks(fontsize=15)
+plt.show()
+
+# Index to datetime. Allerdings Problem wegen des Tages. Dieser ist ja nicht angegeben. Habe für Testzwecke mal den Wochentag genommen.
+df_unfallatlas_query.rename(columns={'UJAHR': 'year', 'UMONAT': 'month', 'UWOCHENTAG': 'day'}, inplace=True)
+df_unfallatlas_query = df_unfallatlas_query.set_index(pd.to_datetime(df_unfallatlas_query[['year', 'month', 'day']]).dt.to_period('M'))
+df_unfallatlas_query.rename(columns={'day': 'UWOCHENTAG'}, inplace=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
