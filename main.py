@@ -97,3 +97,4 @@ elif selection == 1:
     map.showMap()
 
     print('Hi du naase')
+    print('Test')
