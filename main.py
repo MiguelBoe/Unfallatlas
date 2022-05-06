@@ -1,217 +1,97 @@
 import pandas as pd
-import glob
-import seaborn as sns
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score
 import folium
 from folium import plugins
 import webbrowser
-
-# Einlesen der Daten und Verknüpfung in einem DataFrame._____________________________________________________________
-
-
-# Einlesen der Daten.
-files = glob.glob('data/*.csv')
-df_unfallatlas = pd.DataFrame()
-for f in files:
-    csv = pd.read_csv(f, delimiter=';', low_memory=False)
-    df_unfallatlas = pd.concat([df_unfallatlas, csv])
-
-# Informationen über den Datensatz.
-# df_unfallatlas.info()
-# df_description = df_unfallatlas.describe()
-
-
-# Aufbereitung der Daten._______________________________________________________________________________________________________
-
-
-# Aktualisierung des Index.
-df_unfallatlas = df_unfallatlas.reset_index(drop=True)
-
-# Zusammenführen der Spalten.
-df_unfallatlas['ULICHTVERH'] = df_unfallatlas['ULICHTVERH'].fillna(df_unfallatlas['LICHT'])
-df_unfallatlas['STRZUSTAND'] = df_unfallatlas['STRZUSTAND'].fillna(df_unfallatlas['IstStrasse'])
-df_unfallatlas['IstSonstige'] = df_unfallatlas['IstSonstige'].fillna(df_unfallatlas['IstSonstig'])
-
-# Entfernen der überflüssigen Attribute.
-df_unfallatlas.drop(['FID', 'OBJECTID', 'OBJECTID_1', 'LICHT', 'IstStrasse', 'IstSonstig',
-                     'UIDENTSTLA', 'UIDENTSTLAE', 'LINREFX', 'LINREFY'], axis=1, inplace=True)
-
-# Erstellung des AGS.
-df_unfallatlas['AGS'] = df_unfallatlas['ULAND'].astype(str).str.zfill(2) \
-                        + df_unfallatlas['UREGBEZ'].astype(str).str.zfill(1) \
-                        + df_unfallatlas['UKREIS'].astype(str).str.zfill(2) \
-                        + df_unfallatlas['UGEMEINDE'].astype(str).str.zfill(3)
-
-# Umbenennung der Spalten YGCSWGS84 und XGCSWGS84.
-df_unfallatlas.rename(columns={"YGCSWGS84": "lat"}, inplace=True)
-df_unfallatlas.rename(columns={"XGCSWGS84": "lon"}, inplace=True)
-
-# Konvertierung der Standortspalten von europäischen Komma-Sep-Werten in punktgetrennte Werte.
-df_unfallatlas["lon"] = df_unfallatlas["lon"].apply(lambda a: a.replace(",", "."))
-df_unfallatlas["lat"] = df_unfallatlas["lat"].apply(lambda a: a.replace(",", "."))
-
-# Umformatierung der Standortspalten in Floats.
-df_unfallatlas["lon"] = df_unfallatlas["lon"].astype(float)
-df_unfallatlas["lat"] = df_unfallatlas["lat"].astype(float)
-
-# Sortieren der Spalten.
-df_unfallatlas.insert(0, 'AGS', df_unfallatlas.pop('AGS'))
-df_unfallatlas.insert(21, 'lon', df_unfallatlas.pop('lon'))
-df_unfallatlas.insert(21, 'lat', df_unfallatlas.pop('lat'))
-df_unfallatlas.insert(13, 'STRZUSTAND', df_unfallatlas.pop('STRZUSTAND'))
-
-# Prediction IstGkfz._____________________________________________________________________________________________________________________
-
-
-# Erstellung eines Datensatzes zur Abschätzung der fehlenden IstGkfz für 2017.
-df_unfallatlas.loc[df_unfallatlas.IstSonstige == 0, 'IstGkfz'] = 0
-df_unfallatlas_istGkfz = df_unfallatlas[df_unfallatlas['IstGkfz'].notnull()]
-
-# Definition von X und y.
-X = df_unfallatlas_istGkfz.drop(['IstGkfz'], axis=1)
-y = df_unfallatlas_istGkfz['IstGkfz']
-
-# Splitten der Daten in Test- und Training-Set.
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20)
-
-# Training der Daten.
-decision_tree_classification = DecisionTreeClassifier().fit(X_train, y_train)
-
-# Validierung des Modells.
-results = pd.DataFrame(decision_tree_classification.predict(X_test), index=X_test.index)
-
-# Überprüfung der Genauigkeit des Modells.
-score = accuracy_score(y_test, results)
-print('\nAccuracy-Score des Modells:', round(score, 2))
-
-# Validierung der Predictions in einem DataFrame
-results['IstGkfz'] = df_unfallatlas['IstGkfz']
-results.rename(columns={0: "pred"}, inplace=True)
-results.rename(columns={"IstGkfz": "test"}, inplace=True)
-
-# Abschätzung der fehlenden IstGkfz-Werte für das Jahr 2017 mit dem Decision Tree Klassifikationsmodell.
-df_unfallatlas_pred_gkfz = df_unfallatlas[df_unfallatlas['IstGkfz'].isnull()]
-df_unfallatlas_pred_gkfz = df_unfallatlas_pred_gkfz.drop('IstGkfz', axis=1)
-df_IstGkfz_2017 = pd.DataFrame(decision_tree_classification.predict(df_unfallatlas_pred_gkfz),
-                               index=df_unfallatlas_pred_gkfz.index)
-
-# Ergänzung der fehlenden IstGkfz-Werte im DataFrame df_unfallatlas.
-df_unfallatlas['IstGkfz'] = df_unfallatlas['IstGkfz'].fillna(df_IstGkfz_2017[0])
-df_unfallatlas.loc[df_unfallatlas.IstSonstige == 0, 'IstGkfz'] = 0
-df_unfallatlas.loc[(df_unfallatlas['UJAHR'] == 2017) & (df_unfallatlas['IstSonstige'] == 1) & (
-            df_unfallatlas['IstGkfz'] == 1), 'IstSonstige'] = 0
-
-# Analyse._____________________________________________________________________________________________________________________
-
-
-# Abfrage.
-ags = input('\nGemeinde: ')
-# year = int(input('Jahr: '))
-category = int(input('Kategorie: '))
-# monat = int(input('Monat: '))
-
-df_unfallatlas_query = df_unfallatlas[
-    # (df_unfallatlas['UJAHR'] == year) &
-    (df_unfallatlas['AGS'] == ags) &
-    (df_unfallatlas['UKATEGORIE'] == category)
-    # & (df_unfallatlas['UMONAT'] == category)
-    ]
-
-df_unfallatlas_query = df_unfallatlas_query.reset_index(drop=True)
-
-
-# Darstellung der Unfallorte.
-class Map:
-    def __init__(self, center, zoom_start, locationlist, locations):
-        self.center = center
-        self.zoom_start = zoom_start
-        self.locationlist = locationlist
-
-    def showMap(self):
-        # Create the map
-        my_map = folium.Map(location=self.center, zoom_start=self.zoom_start)
-        for point in range(0, len(locationlist)):
-            folium.CircleMarker(locationlist[point], popup=df_unfallatlas_query['UART'][point], radius=3).add_to(my_map)
-        my_map.add_child(plugins.HeatMap(locations, radius=15))
-        # Display the map
-        my_map.save("map.html")
-        webbrowser.open("map.html")
-
-
-# Define coordinates of where we want to center our map
-locations = df_unfallatlas_query[['lat', 'lon']]
-locationlist = locations.values.tolist()
-coords = [df_unfallatlas_query['lat'].mean(), df_unfallatlas_query['lon'].mean()]
-
-map = Map(center=coords, zoom_start=12, locationlist=locationlist, locations=locations.values)
-map.showMap()
-
-# 05570020
-# 05970040
-# 05315000
-
-
-# Predict Unfalltyp._____________________________________________________________________________________________________________________
-
-
-# Darstellung der Korrelation der Attribute
-sns.set()
-plt.figure(figsize=(15, 10))
-plt.title('Korrelation der Attribute', fontsize=25, pad=20)
-sns.heatmap(df_unfallatlas.corr(), annot=True, robust=True)
-plt.show()
-
-# Definition von X und y.
-X = df_unfallatlas.drop(['UTYP1', 'lat', 'lon'], axis=1)
-y = df_unfallatlas['UTYP1']
-
-# Splitten der Daten in Test- und Training-Set.
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20)
-
-# Training der Daten.
-decision_tree_classification = DecisionTreeClassifier(max_depth=10, random_state=1).fit(X_train, y_train)
-
-# Validierung des Modells.
-results = pd.DataFrame(decision_tree_classification.predict(X_test), index=X_test.index)
-
-# Überprüfung der Genauigkeit des Modells.
-score = accuracy_score(y_test, results)
-print('\nAccuracy-Score des Modells:', round(score, 2))
-
-# Analyse._____________________________________________________________________________________________________________________
-
-
-# Darstellung der Wochentage mit den meisten Unfällen pro Jahr.
-weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
-accweekday = df_unfallatlas.groupby(['UJAHR', 'UWOCHENTAG']).size()
-accweekday = accweekday.rename_axis(['UJAHR', 'UWOCHENTAG']).unstack('UWOCHENTAG')
-accweekday.columns = weekdays
-
-plt.figure(figsize=(15, 10))
-sns.heatmap(accweekday, cmap='plasma_r')
-plt.title('Unfälle nach Wochentagen pro Jahr', fontsize=25, pad=20)
-plt.xticks(fontsize=15)
-plt.yticks(fontsize=15)
-plt.show()
-
-# Index to datetime. Allerdings Problem wegen des Tages. Dieser ist ja nicht angegeben. Habe für Testzwecke mal den Wochentag genommen.
-df_unfallatlas_query.rename(columns={'UJAHR': 'year', 'UMONAT': 'month', 'UWOCHENTAG': 'day'}, inplace=True)
-df_unfallatlas_query = df_unfallatlas_query.set_index(pd.to_datetime(df_unfallatlas_query[['year', 'month', 'day']]).dt.to_period('M'))
-df_unfallatlas_query.rename(columns={'day': 'UWOCHENTAG'}, inplace=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+from data_preprocessing import get_data, preprocessing, pred_IstGkfz
+from model import pred_accident_severity, sarima, pred_number_of_accidents, grid_search, visualization_ts
+
+#Parameter
+selection = None
+ags = '09162000'
+
+#Begrüßung.
+print('\n##################################################')
+print('Willkommen beim Unfallvorhersage-Tool für München!')
+print('##################################################\n')
+print('Einlesen und Verarbeiten der Daten ...')
+
+#Einlesen und Verarbeiten der Daten.
+df_unfallatlas = get_data()
+df_unfallatlas = preprocessing(df_unfallatlas)
+df_unfallatlas = pred_IstGkfz(df_unfallatlas)
+
+#Auswahl der Vorhersage.
+print('Daten verarbeitet!')
+print('\nWas wollen Sie tun?\n')
+print('0 = Vorhersage der schwere eines Unfalls.')
+print('1 = Vorhersage der Anzahl der Unfälle für das Jahr 2021.')
+
+while selection != 0 and selection != 1:
+    try:
+        selection = int(input('\nEingabe: '))
+        if selection != 0 and selection != 1:
+            print('\nBitte wählen Sie zwischen 0 und 1 aus:\n')
+            print('0 = Vorhersage der schwere eines Unfalls.')
+            print('1 = Vorhersage der Anzahl der Unfälle für das Jahr 2021.')
+    except ValueError:
+        print('\nBitte wählen Sie zwischen 0 und 1 aus:\n')
+        print('0 = Vorhersage der schwere eines Unfalls.')
+        print('1 = Vorhersage der Anzahl der Unfälle für das Jahr 2021.')
+
+if selection == 0:
+    print('\n#####################################')
+    print('Vorhersage der schwere eines Unfalls.')
+    print('#####################################\n')
+    decision_tree_classification = pred_accident_severity(df_unfallatlas)
+
+elif selection == 1:
+    print('\n####################################################')
+    print('Vorhersage der Anzahl der Unfälle für das Jahr 2021.')
+    print('####################################################')
+
+    #Erstellung des Modells mit vorheriger Grid Search zur Definition der besten Parameter für das Modell.
+    df_number_of_accidents = pred_number_of_accidents(df_unfallatlas, ags)
+    bestAIC, bestParam, bestSParam = grid_search(y = df_number_of_accidents)
+    sarima = sarima(bestParam, bestSParam, y = df_number_of_accidents)
+
+    #Vorhersage der Anzahl der Unfälle für das Jahr 2021.
+    prediction = sarima.get_forecast(steps = 12)
+    df_number_of_accidents = pd.concat([pd.Series(df_number_of_accidents), pd.Series(round(prediction.predicted_mean))])
+    visualization_ts(df_number_of_accidents, prediction)
+
+    print('\n############################################################################')
+    print('In dem Plot ist die Prognose der Unfallzahlen für das Jahr 2021 dargestellt.')
+    print('   In der Map sind die gefährlichsten Unfallorte in München dargestellt.')
+    print('############################################################################\n')
+
+    #Vorbereitung des Datensatzes zur Darstellung der Unfallorte.
+    df_unfallatlas_visualization = df_unfallatlas[(df_unfallatlas['AGS'] == ags) & (df_unfallatlas['UKATEGORIE'] == 2)].reset_index(drop = True)
+
+    #Darstellung der Unfallorte.
+    class Map:
+
+        #init.
+        def __init__(self, center, zoom_start, locationlist, locations):
+            self.center = center
+            self.zoom_start = zoom_start
+            self.locationlist = locationlist
+
+        def showMap(self):
+
+            #Erstellung der Map.
+            accident_map = folium.Map(location = self.center, zoom_start = self.zoom_start)
+            #for point in range(0, len(locationlist)):
+            #    folium.CircleMarker(locationlist[point], popup = df_unfallatlas_visualization['UART'][point], radius = 3).add_to(accident_map)
+            accident_map.add_child(plugins.HeatMap(locations, radius = 15))
+
+            #Darstellung der Map.
+            accident_map.save('accident_map.html')
+            webbrowser.open('accident_map.html')
+
+    #Definition der Koordinaten.
+    locations = df_unfallatlas_visualization[['lat', 'lon']]
+    locationlist = locations.values.tolist()
+    coords = [df_unfallatlas_visualization['lat'].mean(), df_unfallatlas_visualization['lon'].mean()]
+
+    map = Map(center = coords, zoom_start = 12, locationlist = locationlist, locations = locations.values)
+    map.showMap()

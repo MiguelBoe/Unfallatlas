@@ -1,0 +1,7 @@
+- Erstellung verschiedener Module: data_preprocessing, data_exploration, main
+- Code dokumentieren und aufräumen
+- UseCase ausarbeiten und den Code darauf fitten
+- Map anpassen (Mit Markern oder eher ohne? etc.)
+- Abfragetool entwickeln (für TS_forecast und Unfallkategorie_prediction)
+- Wahrscheinlichkeit der Unfallkategorien und Erstellung einer vernünftigen Ausgabe
+- SARIMA Modell anpassen
