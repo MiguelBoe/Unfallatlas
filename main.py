@@ -96,5 +96,3 @@ elif selection == 1:
     map = Map(center = coords, zoom_start = 12, locationlist = locationlist, locations = locations.values)
     map.showMap()
 
-    print('Hi du naase')
-    print('Test')

@@ -25,6 +25,16 @@ def get_data():
 df_unfallatlas = get_data()
 
 
+def data_ext():
+    # Einlesen der Daten und Verknüpfung in einem DataFrame.
+    df_unfalldaten = pd.read_csv('Externe_Unfalldaten_m.csv', delimiter= ';', low_memory= False)
+
+    return df_unfalldaten
+
+df_unfalldaten = data_ext()
+
+
+
 # Aufbereitung der Daten._______________________________________________________________________________________________
 
 def preprocessing(df_unfallatlas):
