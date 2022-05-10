@@ -102,8 +102,7 @@ def pred_IstGkfz(df_unfallatlas):
     # Abschätzung der fehlenden IstGkfz-Werte für das Jahr 2017 mit dem Decision Tree Klassifikationsmodell.
     df_unfallatlas_pred_gkfz = df_unfallatlas[df_unfallatlas['IstGkfz'].isnull()]
     df_unfallatlas_pred_gkfz = df_unfallatlas_pred_gkfz.drop('IstGkfz', axis=1)
-    df_IstGkfz_2017 = pd.DataFrame(decision_tree_classification.predict(df_unfallatlas_pred_gkfz),
-                                   index=df_unfallatlas_pred_gkfz.index)
+    df_IstGkfz_2017 = pd.DataFrame(decision_tree_classification.predict(df_unfallatlas_pred_gkfz), index=df_unfallatlas_pred_gkfz.index)
 
     # Ergänzung der fehlenden IstGkfz-Werte im DataFrame df_unfallatlas.
     df_unfallatlas['IstGkfz'] = df_unfallatlas['IstGkfz'].fillna(df_IstGkfz_2017[0])

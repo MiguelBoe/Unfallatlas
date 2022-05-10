@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
 import itertools
 import statsmodels.api as sm
@@ -13,33 +14,10 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.stattools import adfuller
 import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
+import statsmodels
+from sklearn.model_selection import GridSearchCV
 
 warnings.simplefilter('ignore', ConvergenceWarning)
-
-
-#Vorhersage der schwere des Unfalls.____________________________________________________________________________________
-
-def pred_accident_severity(df_unfallatlas):
-
-    #Definition von X und y.
-    X = df_unfallatlas.drop(['UTYP1', 'lat', 'lon'], axis=1)
-    y = df_unfallatlas['UTYP1']
-
-    #Splitten der Daten in Test- und Training-Set.
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20)
-
-    #Training der Daten.
-    decision_tree_classification = DecisionTreeClassifier(max_depth=10, random_state=1).fit(X_train, y_train)
-
-    #Validierung des Modells.
-    results = pd.DataFrame(decision_tree_classification.predict(X_test), index=X_test.index)
-
-    #Überprüfung der Genauigkeit des Modells.
-    score = accuracy_score(y_test, results)
-    print('\nAccuracy-Score des Modells:', round(score, 2))
-
-    return decision_tree_classification
-
 
 #SARIMA.________________________________________________________________________________________________________________
 
@@ -50,6 +28,8 @@ def pred_number_of_accidents(df_unfallatlas, ags):
     df_number_of_accidents = df_unfallatlas[(df_unfallatlas['AGS'] == ags)].reset_index(drop = True)
     df_number_of_accidents.rename(columns={'UJAHR': 'year', 'UMONAT': 'month', 'UWOCHENTAG': 'day', 'UKATEGORIE': 'Count'},inplace=True)
     df_number_of_accidents = df_number_of_accidents.set_index(pd.to_datetime(df_number_of_accidents[['year', 'month', 'day']])).resample('M')['Count'].count()
+    df_number_of_accidents.index = df_number_of_accidents.index.map(lambda t: t.replace(day = 1))
+    df_number_of_accidents.index.freq = 'MS'
 
     #Plot Dekomposition.
     rcParams['figure.figsize'] = 15, 10
@@ -93,10 +73,10 @@ def grid_search(y):
         for param_seasonal in seasonal_pdq:
             try:
                 mod = sm.tsa.statespace.SARIMAX(y,
-                                                order=param,
-                                                seasonal_order=param_seasonal,
-                                                enforce_stationarity=False,
-                                                enforce_invertibility=False)
+                                                order = param,
+                                                seasonal_order = param_seasonal,
+                                                enforce_stationarity = False,
+                                                enforce_invertibility = False)
                 results = mod.fit(maxiter=200, disp=0)
                 print('ARIMA{}x{}12 - AIC:{}'.format(param, param_seasonal, results.aic))
                 if results.aic < bestAIC:
@@ -130,8 +110,8 @@ def sarima(bestParam, bestSParam, y):
 def visualization_ts(df_number_of_accidents, prediction):
 
     #Darstellung der TimeSeries.
-    fig, ax = plt.subplots(figsize  =(15, 10))
-    sns.lineplot(data = df_number_of_accidents)
+    fig, ax = plt.subplots(figsize  = (15, 10))
+    sns.lineplot(data = df_number_of_accidents['Count'])
     sns.lineplot(data = prediction.predicted_mean)
     plt.title('Vorhersage der Anzahl der Unfälle', fontsize = 30, pad = 20)
     plt.ylabel('Anzahl der Unfälle', fontsize = 25)
@@ -140,13 +120,76 @@ def visualization_ts(df_number_of_accidents, prediction):
     ax.tick_params(axis = 'y', labelsize = 20)
     plt.show()
 
+    print('Vorhersage der Unfallzahlen auf Monatsbasis:')
+    print(round(prediction.predicted_mean))
 
+#Vorhersage der schwere des Unfalls.____________________________________________________________________________________
 
+def pred_accident_severity_decision_tree(df_unfallatlas):
 
+    #Definition von X und y.
+    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND'], axis=1)
+    y = df_unfallatlas['UKATEGORIE']
 
+    #Splitten der Daten in Test- und Training-Set.
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
 
+    #Training der Daten.
+    decision_tree_clf = DecisionTreeClassifier(max_depth = 10, random_state=1).fit(X_train, y_train)
 
+    #Validierung des Modells.
+    results = pd.DataFrame(decision_tree_clf.predict(X_test), index = X_test.index)
 
+    #Überprüfung der Genauigkeit des Modells.
+    score = accuracy_score(y_test, results)
+    #print('\nAccuracy-Score des Modells:', round(score, 2))
 
+    return decision_tree_clf
 
+def pred_accident_severity_nearest_neighbors(df_unfallatlas):
 
+    #Definition von X und y.
+    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND'], axis=1)
+    y = df_unfallatlas['UKATEGORIE']
+
+    #Splitten der Daten in Test- und Training-Set.
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
+
+    #Training der Daten.
+    knn_clf = KNeighborsClassifier(n_neighbors = 1).fit(X_train, y_train)
+
+    #Validierung des Modells.
+    results = pd.DataFrame(knn_clf.predict(X_test), index = X_test.index)
+
+    #Überprüfung der Genauigkeit des Modells.
+    score = accuracy_score(y_test, results)
+    #print('\nAccuracy-Score des Modells:', round(score, 2))
+
+    return knn_clf
+
+def grid_search_knn(df_unfallatlas):
+    # Definition von X und y.
+    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND'], axis=1)
+    y = df_unfallatlas['UKATEGORIE']
+
+    #List Hyperparameters that we want to tune.
+    leaf_size = list(range(1,10))
+    n_neighbors = list(range(1,10))
+    p=[1,2]
+
+    #Convert to dictionary
+    hyperparameters = dict(leaf_size=leaf_size, n_neighbors=n_neighbors, p=p)
+
+    #Create new KNN object
+    knn_2 = KNeighborsClassifier()
+
+    #Use GridSearch
+    clf = GridSearchCV(knn_2, hyperparameters, cv=10)
+
+    #Fit the model
+    best_model = clf.fit(X,y)
+
+    #Print The value of best Hyperparameters
+    print('Best leaf_size:', best_model.best_estimator_.get_params()['leaf_size'])
+    print('Best p:', best_model.best_estimator_.get_params()['p'])
+    print('Best n_neighbors:', best_model.best_estimator_.get_params()['n_neighbors'])

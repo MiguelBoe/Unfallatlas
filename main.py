@@ -3,7 +3,9 @@ import folium
 from folium import plugins
 import webbrowser
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz
-from model import pred_accident_severity, sarima, pred_number_of_accidents, grid_search, visualization_ts
+from utils import query_exception, query, kategorien, tools
+from model import sarima, pred_accident_severity_decision_tree, pred_accident_severity_nearest_neighbors, \
+                  pred_number_of_accidents, grid_search, visualization_ts, grid_search_knn
 
 #Parameter
 selection = None
@@ -19,35 +21,32 @@ print('Einlesen und Verarbeiten der Daten ...')
 df_unfallatlas = get_data()
 df_unfallatlas = preprocessing(df_unfallatlas)
 df_unfallatlas = pred_IstGkfz(df_unfallatlas)
+print('Daten verarbeitet!')
 
 #Auswahl der Vorhersage.
-print('Daten verarbeitet!')
-print('\nWas wollen Sie tun?\n')
-print('0 = Vorhersage der schwere eines Unfalls.')
-print('1 = Vorhersage der Anzahl der Unfälle für das Jahr 2021.')
+message = '\nWas wollen Sie tun?'
+print(message, '\n')
+tool = query_exception(dict = tools, message= message)
 
-while selection != 0 and selection != 1:
-    try:
-        selection = int(input('\nEingabe: '))
-        if selection != 0 and selection != 1:
-            print('\nBitte wählen Sie zwischen 0 und 1 aus:\n')
-            print('0 = Vorhersage der schwere eines Unfalls.')
-            print('1 = Vorhersage der Anzahl der Unfälle für das Jahr 2021.')
-    except ValueError:
-        print('\nBitte wählen Sie zwischen 0 und 1 aus:\n')
-        print('0 = Vorhersage der schwere eines Unfalls.')
-        print('1 = Vorhersage der Anzahl der Unfälle für das Jahr 2021.')
-
-if selection == 0:
+if tool == 0:
     print('\n#####################################')
     print('Vorhersage der schwere eines Unfalls.')
     print('#####################################\n')
-    decision_tree_classification = pred_accident_severity(df_unfallatlas)
+    print('Erstellung des Modells ...\n')
 
-elif selection == 1:
+    #grid_search_knn(df_unfallatlas)
+    model = pred_accident_severity_nearest_neighbors(df_unfallatlas)
+    prediction = query()
+    accident_severity = model.predict(prediction)
+
+    #Ausgabe der Unfallkategorie
+    print('\nUnfallkategorie:\t', kategorien[accident_severity[0]])
+    print('####################################################\n')
+
+elif tool == 1:
     print('\n####################################################')
     print('Vorhersage der Anzahl der Unfälle für das Jahr 2021.')
-    print('####################################################')
+    print('####################################################\n')
 
     #Erstellung des Modells mit vorheriger Grid Search zur Definition der besten Parameter für das Modell.
     df_number_of_accidents = pred_number_of_accidents(df_unfallatlas, ags)
@@ -57,15 +56,17 @@ elif selection == 1:
     #Vorhersage der Anzahl der Unfälle für das Jahr 2021.
     prediction = sarima.get_forecast(steps = 12)
     df_number_of_accidents = pd.concat([pd.Series(df_number_of_accidents), pd.Series(round(prediction.predicted_mean))])
+    df_number_of_accidents = pd.DataFrame(df_number_of_accidents).rename(columns = {0: 'Count'})
     visualization_ts(df_number_of_accidents, prediction)
 
     print('\n############################################################################')
     print('In dem Plot ist die Prognose der Unfallzahlen für das Jahr 2021 dargestellt.')
+    print('In der obenstehenden Tabelle sind die prognostizierten Unfallzahlen angezeigt.')
     print('   In der Map sind die gefährlichsten Unfallorte in München dargestellt.')
     print('############################################################################\n')
 
     #Vorbereitung des Datensatzes zur Darstellung der Unfallorte.
-    df_unfallatlas_visualization = df_unfallatlas[(df_unfallatlas['AGS'] == ags) & (df_unfallatlas['UKATEGORIE'] == 2)].reset_index(drop = True)
+    df_unfallatlas_visualization = df_unfallatlas[(df_unfallatlas['AGS'] == ags) & (df_unfallatlas['UKATEGORIE'] != 3)].reset_index(drop = True)
 
     #Darstellung der Unfallorte.
     class Map:

@@ -2,6 +2,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz
+from model import pred_number_of_accidents
 
 #Begrüßung.
 print('\nWillkommen beim Data-Exploration Bereich des Accident Prediction Tools!')
@@ -35,3 +36,7 @@ plt.title('Unfälle nach Wochentagen pro Jahr', fontsize=25, pad=20)
 plt.xticks(fontsize=15)
 plt.yticks(fontsize=15)
 plt.show()
+
+number_of_accidents = pd.DataFrame(pred_number_of_accidents(df_unfallatlas, ags = '09162000'))
+
+print()
