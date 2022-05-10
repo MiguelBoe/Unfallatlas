@@ -3,7 +3,7 @@ import folium
 from folium import plugins
 import webbrowser
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz
-from utils import query_exception, query, kategorien, tools
+from utils import query_exception, query, kategorien, tools, monate_map, arten
 from model import sarima, pred_accident_severity_decision_tree, pred_accident_severity_nearest_neighbors, \
                   pred_number_of_accidents, grid_search, visualization_ts, grid_search_knn
 
@@ -59,14 +59,19 @@ elif tool == 1:
     df_number_of_accidents = pd.DataFrame(df_number_of_accidents).rename(columns = {0: 'Count'})
     visualization_ts(df_number_of_accidents, prediction)
 
-    print('\n############################################################################')
-    print('In dem Plot ist die Prognose der Unfallzahlen für das Jahr 2021 dargestellt.')
-    print('In der obenstehenden Tabelle sind die prognostizierten Unfallzahlen angezeigt.')
-    print('   In der Map sind die gefährlichsten Unfallorte in München dargestellt.')
-    print('############################################################################\n')
+    print('\nSie können sich nun eine Map anzeigen lassen, in welcher die geährlichsten Unfallstellen in München dargstellt sind.')
 
-    #Vorbereitung des Datensatzes zur Darstellung der Unfallorte.
-    df_unfallatlas_visualization = df_unfallatlas[(df_unfallatlas['AGS'] == ags) & (df_unfallatlas['UKATEGORIE'] != 3)].reset_index(drop = True)
+    message = 'Die gefärhrlichsten Unfallstellen können sie für einen bestimmten Monat betrachten oder für das ganze Jahr:'
+    print(message, '\n')
+    period_map = query_exception(dict = monate_map, message = message)
+
+    # Vorbereitung des Datensatzes zur Darstellung der Unfallorte.
+    if period_map == 0:
+        df_unfallatlas_visualization = df_unfallatlas[(df_unfallatlas['AGS'] == ags) & (df_unfallatlas['UKATEGORIE'] != 3)].reset_index(drop=True)
+    else:
+        df_unfallatlas_visualization = df_unfallatlas[(df_unfallatlas['AGS'] == ags) &
+                                                      (df_unfallatlas['UKATEGORIE'] != 3) &
+                                                      (df_unfallatlas['UMONAT'] == period_map)].reset_index(drop=True)
 
     #Darstellung der Unfallorte.
     class Map:
@@ -81,8 +86,9 @@ elif tool == 1:
 
             #Erstellung der Map.
             accident_map = folium.Map(location = self.center, zoom_start = self.zoom_start)
-            #for point in range(0, len(locationlist)):
-            #    folium.CircleMarker(locationlist[point], popup = df_unfallatlas_visualization['UART'][point], radius = 3).add_to(accident_map)
+            if period_map != 0:
+                for point in range(0, len(locationlist)):
+                    folium.CircleMarker(locationlist[point], popup = arten[df_unfallatlas_visualization['UART'][point]], radius = 3).add_to(accident_map)
             accident_map.add_child(plugins.HeatMap(locations, radius = 15))
 
             #Darstellung der Map.
@@ -96,3 +102,7 @@ elif tool == 1:
 
     map = Map(center = coords, zoom_start = 12, locationlist = locationlist, locations = locations.values)
     map.showMap()
+
+    print('\n####################################################################################################')
+    print(f'In der Map sind die gefährlichsten Unfallorte in München für den Zeitraum: "{monate_map[period_map]}" dargestellt.')
+    print('####################################################################################################\n')

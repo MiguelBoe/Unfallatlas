@@ -8,7 +8,6 @@
 
 
 1. zusätzlichen Datensatz (Wetterdaten München) Alkoholdatensatz(Unfalldaten)
-2. zusätzliche Mapfunktion 
 3. SARIMAX exogene Variablen einfügen (aus Unfalldaten oder Wetterdaten) und verbessern/anpassen
 4. EDA 
 5. verschiedene Modelle testen (für kurzfristige Prognose)

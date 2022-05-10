@@ -123,6 +123,11 @@ def visualization_ts(df_number_of_accidents, prediction):
     print('Vorhersage der Unfallzahlen auf Monatsbasis:')
     print(round(prediction.predicted_mean))
 
+    print('\n############################################################################################')
+    print('In der obenstehenden Tabelle ist die prognostizierte Anzahl der Unfälle pro Monat angezeigt.')
+    print('       In dem Plot ist die Prognose der Unfallzahlen für das Jahr 2021 dargestellt.')
+    print('############################################################################################\n')
+
 #Vorhersage der schwere des Unfalls.____________________________________________________________________________________
 
 def pred_accident_severity_decision_tree(df_unfallatlas):
