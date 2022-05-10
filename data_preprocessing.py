@@ -25,14 +25,21 @@ def get_data():
 df_unfallatlas = get_data()
 
 
-def data_ext():
+def data_ex_1():
     # Einlesen der Daten und Verknüpfung in einem DataFrame.
     df_unfalldaten = pd.read_csv('Externe_Unfalldaten_m.csv', delimiter= ';', low_memory= False)
 
     return df_unfalldaten
 
-df_unfalldaten = data_ext()
+df_unfalldaten = data_ex_1()
 
+def data_ex_2():
+    # Einlesen der Daten und Verknüpfung in einem DataFrame.
+    df_wetterdaten = pd.read_csv('Wetterdaten_München.csv', delimiter=';', low_memory=False)
+
+    return df_wetterdaten
+
+df_wetterdaten = data_ex_2()
 
 
 # Aufbereitung der Daten._______________________________________________________________________________________________
@@ -74,6 +81,9 @@ def preprocessing(df_unfallatlas):
     df_unfallatlas.insert(21, 'lon', df_unfallatlas.pop('lon'))
     df_unfallatlas.insert(21, 'lat', df_unfallatlas.pop('lat'))
     df_unfallatlas.insert(13, 'STRZUSTAND', df_unfallatlas.pop('STRZUSTAND'))
+
+    # Löschen von weiteren Attributen
+    df_unfallatlas.drop(['ULAND', 'UREGBEZ', 'UKREIS', 'UGEMEINDE','UART'], axis=1, inplace=True)
 
     return df_unfallatlas
 
