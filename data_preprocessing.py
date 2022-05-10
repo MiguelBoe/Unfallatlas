@@ -106,9 +106,22 @@ def pred_IstGkfz(df_unfallatlas):
 
     # Ergänzung der fehlenden IstGkfz-Werte im DataFrame df_unfallatlas.
     df_unfallatlas['IstGkfz'] = df_unfallatlas['IstGkfz'].fillna(df_IstGkfz_2017[0])
-    df_unfallatlas.loc[df_unfallatlas.IstSonstige == 0, 'IstGkfz'] = 0
+    #df_unfallatlas.loc[df_unfallatlas.IstSonstige == 0, 'IstGkfz'] = 0
     df_unfallatlas.loc[(df_unfallatlas['UJAHR'] == 2017) & (df_unfallatlas['IstSonstige'] == 1) & (df_unfallatlas['IstGkfz'] == 1), 'IstSonstige'] = 0
 
     return df_unfallatlas
 
 df_unfallatlas = pred_IstGkfz(df_unfallatlas = df_unfallatlas)
+
+def get_exog_data():
+
+    wheater_data = pd.read_csv('exog_data/Wetterdaten_München.csv', sep = ';')
+    wheater_data['Temperatur Mittelwert'] = wheater_data['Temperatur Mittelwert'].apply(lambda a: a.replace(",", ".")).astype(float)
+    wheater_data['Niederschlagmenge in Summe Liter pro qm'] = wheater_data['Niederschlagmenge in Summe Liter pro qm'].apply(lambda a: a.replace(",", ".")).astype(float)
+    wheater_data['Sonnenscheindauer in Summe in Stunden'] = wheater_data['Sonnenscheindauer in Summe in Stunden'].apply(lambda a: a.replace(",", ".")).astype(float)
+
+    return wheater_data
+
+wheater_data = get_exog_data()
+
+print()
