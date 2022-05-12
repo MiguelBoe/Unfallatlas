@@ -42,6 +42,7 @@ def data_ex_2():
 df_wetterdaten = data_ex_2()
 
 
+
 # Aufbereitung der Daten._______________________________________________________________________________________________
 
 def preprocessing(df_unfallatlas):
