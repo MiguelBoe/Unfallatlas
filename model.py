@@ -13,6 +13,7 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.stattools import adfuller
 import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
+from sklearn import svm
 
 warnings.simplefilter('ignore', ConvergenceWarning)
 
@@ -22,8 +23,8 @@ warnings.simplefilter('ignore', ConvergenceWarning)
 def pred_accident_severity(df_unfallatlas):
 
     #Definition von X und y.
-    X = df_unfallatlas.drop(['UTYP1', 'lat', 'lon'], axis=1)
-    y = df_unfallatlas['UTYP1']
+    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon'], axis=1)
+    y = df_unfallatlas['UKATEGORIE']
 
     #Splitten der Daten in Test- und Training-Set.
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20)
@@ -39,6 +40,30 @@ def pred_accident_severity(df_unfallatlas):
     print('\nAccuracy-Score des Modells:', round(score, 2))
 
     return decision_tree_classification
+
+def pred_accident_severity_svm(dfunfallatlas):
+
+    #Vorhersage der Unfallkategorie mit SVM
+    X_SVM = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon'], axis=1)
+    y_SVM = df_unfallatlas['UKATEGORIE']
+
+    #Splitten der Daten in Test- und Training-Set.
+    X_SVM_train, X_SVM_test, y_SVM_train, y_SVM_test = train_test_split(X_SVM, y_SVM, test_size=0.20)
+
+    #Create a svm-Classifier
+    clf = svm.SVC(kernel = 'linear')
+
+    #Training der Daten.
+    SVM = clf.fit(X_SVM_train, y_SVM_train)
+
+    #Validierung des Modells.
+    results_SVM = pd.DataFrame(clf.predict(X_SVM_test), index=X_SVM_test.index)
+
+    #Überprüfung der Genauigkeit des Modells.
+    score_SVM = accuracy_score(y_SVM_test, results_SVM)
+    print('\nAccuracy-Score des Modells SVM:', round(score, 2))
+
+    return SVM
 
 
 #SARIMA.________________________________________________________________________________________________________________
