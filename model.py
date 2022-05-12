@@ -41,7 +41,7 @@ def pred_accident_severity(df_unfallatlas):
 
     return decision_tree_classification
 
-def pred_accident_severity_svm(dfunfallatlas):
+def pred_accident_severity_svm(df_unfallatlas):
 
     #Vorhersage der Unfallkategorie mit SVM
     X_SVM = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon'], axis=1)
@@ -50,7 +50,7 @@ def pred_accident_severity_svm(dfunfallatlas):
     #Splitten der Daten in Test- und Training-Set.
     X_SVM_train, X_SVM_test, y_SVM_train, y_SVM_test = train_test_split(X_SVM, y_SVM, test_size=0.20)
 
-    #Create a svm-Classifier
+    #Generierung svm-Classifier
     clf = svm.SVC(kernel = 'linear')
 
     #Training der Daten.
@@ -63,7 +63,7 @@ def pred_accident_severity_svm(dfunfallatlas):
     score_SVM = accuracy_score(y_SVM_test, results_SVM)
     print('\nAccuracy-Score des Modells SVM:', round(score, 2))
 
-    return SVM
+    return results_SVM
 
 
 #SARIMA.________________________________________________________________________________________________________________
