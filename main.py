@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import folium
 from folium import plugins
@@ -8,7 +7,7 @@ import webbrowser
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz, get_exog_data, prepare_number_of_accidents
 from utils import query_exception, query, kategorien, tools, monate_map, arten
 from model import sarima, pred_accident_severity_decision_tree, pred_accident_severity_nearest_neighbors, \
-                  train_test_split, grid_search, visualization_ts, grid_search_knn
+                  grid_search, visualization_ts
 
 #Parameter
 selection = None
@@ -32,7 +31,7 @@ print('Daten verarbeitet!')
 #Auswahl der Vorhersage.
 message = '\nWas wollen Sie tun?'
 print(message, '\n')
-tool = query_exception(dict = tools, message= message)
+tool = query_exception(dict = tools, message = message)
 
 if tool == 0:
     print('\n#####################################')

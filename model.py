@@ -10,7 +10,6 @@ import itertools
 import statsmodels.api as sm
 import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
-import statsmodels
 from sklearn.model_selection import GridSearchCV
 
 warnings.simplefilter('ignore', ConvergenceWarning)
