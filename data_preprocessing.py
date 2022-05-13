@@ -1,9 +1,15 @@
 import pandas as pd
 import glob
+import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
-
+import statsmodels.api as sm
+from pylab import rcParams
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.tsa.stattools import adfuller
+import matplotlib.pyplot as plt
+import matplotlib
 
 # Einlesen der Daten ___________________________________________________________________________________________________
 
@@ -113,15 +119,60 @@ def pred_IstGkfz(df_unfallatlas):
 
 df_unfallatlas = pred_IstGkfz(df_unfallatlas = df_unfallatlas)
 
+# Einlesen und Vorbereiten der exogenen Daten.__________________________________________________________________________
+
 def get_exog_data():
 
     wheater_data = pd.read_csv('exog_data/Wetterdaten_München.csv', sep = ';')
     wheater_data['Temperatur Mittelwert'] = wheater_data['Temperatur Mittelwert'].apply(lambda a: a.replace(",", ".")).astype(float)
     wheater_data['Niederschlagmenge in Summe Liter pro qm'] = wheater_data['Niederschlagmenge in Summe Liter pro qm'].apply(lambda a: a.replace(",", ".")).astype(float)
     wheater_data['Sonnenscheindauer in Summe in Stunden'] = wheater_data['Sonnenscheindauer in Summe in Stunden'].apply(lambda a: a.replace(",", ".")).astype(float)
+    wheater_data = wheater_data.rename(columns={'Jahr':'year', 'Monat': 'month'})
+    wheater_data['day'] = 1
+    wheater_data = pd.DataFrame(wheater_data.set_index(pd.to_datetime(wheater_data[['year', 'month', 'day']])))
+    wheater_data.drop(['year', 'month', 'day'], axis=1, inplace=True)
 
     return wheater_data
 
 wheater_data = get_exog_data()
 
-print()
+# Vorbereitung der Zeireihe und kurze Analyse.__________________________________________________________________________
+
+def prepare_number_of_accidents(df_unfallatlas, ags, wheater_data, visualization_mode):
+
+    #Index to datetime. Allerdings Problem wegen des Tages. Dieser ist ja nicht angegeben. Habe für Testzwecke mal den Wochentag genommen.
+    df_number_of_accidents = df_unfallatlas[(df_unfallatlas['AGS'] == ags)].reset_index(drop = True)
+    df_number_of_accidents.rename(columns={'UJAHR': 'year', 'UMONAT': 'month', 'UWOCHENTAG': 'day', 'UKATEGORIE': 'Count'},inplace=True)
+    df_number_of_accidents = pd.DataFrame(df_number_of_accidents.set_index(pd.to_datetime(df_number_of_accidents[['year', 'month', 'day']])).resample('M')['Count'].count())
+    df_number_of_accidents.index = df_number_of_accidents.index.map(lambda t: t.replace(day = 1))
+    df_number_of_accidents.index.freq = 'MS'
+
+    #Plot Dekomposition.
+    if visualization_mode:
+        rcParams['figure.figsize'] = 15, 10
+        decomposition = sm.tsa.seasonal_decompose(df_number_of_accidents['Count'], model = 'additive')
+        fig = decomposition.plot()
+        plt.show()
+
+        #Plot ACF und PACF.
+        plot_acf(df_number_of_accidents['Count'])
+        matplotlib.pyplot.show()
+        plot_pacf(df_number_of_accidents['Count'], method='ywm')
+        matplotlib.pyplot.show()
+
+    #Sind die Daten stationär?
+    adf_test = adfuller(df_number_of_accidents, autolag='AIC')
+    print('1. ADF : ', adf_test[0])
+    print('2. P-Value : ', adf_test[1])
+    print('3. Num Of Lags : ', adf_test[2])
+    print('4. Num Of Observations Used For ADF Regression and Critical Values Calculation :', adf_test[3])
+    print('5. Critical Values :')
+
+    for key, val in adf_test[4].items():
+        print('\t', key, ': ', val)
+
+    df_number_of_accidents = pd.concat([df_number_of_accidents, wheater_data], axis = 1)
+    wheater_data_2021 = df_number_of_accidents.tail(12)
+    df_number_of_accidents = df_number_of_accidents.dropna()
+
+    return df_number_of_accidents, wheater_data_2021

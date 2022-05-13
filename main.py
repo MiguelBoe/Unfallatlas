@@ -1,15 +1,20 @@
 import pandas as pd
+import numpy as np
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import folium
 from folium import plugins
 import webbrowser
-from data_preprocessing import get_data, preprocessing, pred_IstGkfz
+from data_preprocessing import get_data, preprocessing, pred_IstGkfz, get_exog_data, prepare_number_of_accidents
 from utils import query_exception, query, kategorien, tools, monate_map, arten
 from model import sarima, pred_accident_severity_decision_tree, pred_accident_severity_nearest_neighbors, \
-                  pred_number_of_accidents, grid_search, visualization_ts, grid_search_knn
+                  train_test_split, grid_search, visualization_ts, grid_search_knn
 
 #Parameter
 selection = None
 ags = '09162000'
+model_features = ['Temperatur Mittelwert', 'Niederschlagmenge in Summe Liter pro qm', 'Sonnenscheindauer in Summe in Stunden']
+visualization_mode = False
 
 #Begrüßung.
 print('\n##################################################')
@@ -21,6 +26,7 @@ print('Einlesen und Verarbeiten der Daten ...')
 df_unfallatlas = get_data()
 df_unfallatlas = preprocessing(df_unfallatlas)
 df_unfallatlas = pred_IstGkfz(df_unfallatlas)
+wheater_data = get_exog_data()
 print('Daten verarbeitet!')
 
 #Auswahl der Vorhersage.
@@ -49,14 +55,19 @@ elif tool == 1:
     print('####################################################\n')
 
     #Erstellung des Modells mit vorheriger Grid Search zur Definition der besten Parameter für das Modell.
-    df_number_of_accidents = pred_number_of_accidents(df_unfallatlas, ags)
-    bestAIC, bestParam, bestSParam = grid_search(y = df_number_of_accidents)
-    sarima = sarima(bestParam, bestSParam, y = df_number_of_accidents)
+    df_number_of_accidents, wheater_data_2021 = prepare_number_of_accidents(df_unfallatlas, ags, wheater_data, visualization_mode)
+    bestAIC, bestParam, bestSParam = grid_search(y = df_number_of_accidents['Count'], x = df_number_of_accidents[model_features])
+    sarima = sarima(bestParam, bestSParam, visualization_mode, y = df_number_of_accidents['Count'], x = df_number_of_accidents[model_features])
 
     #Vorhersage der Anzahl der Unfälle für das Jahr 2021.
-    prediction = sarima.get_forecast(steps = 12)
-    df_number_of_accidents = pd.concat([pd.Series(df_number_of_accidents), pd.Series(round(prediction.predicted_mean))])
+    pred_start, pred_end = str(np.min(df_number_of_accidents.index) + relativedelta(months = 48)), str(np.max(df_number_of_accidents.index) + relativedelta(months=12))
+    prediction = sarima.get_prediction(pred_start, pred_end, exog=wheater_data_2021[model_features])
+    df_number_of_accidents = pd.concat([df_number_of_accidents['Count'], round(prediction.predicted_mean.last('12M'))])
     df_number_of_accidents = pd.DataFrame(df_number_of_accidents).rename(columns = {0: 'Count'})
+
+    print('\nVorhersage der Unfallzahlen auf Monatsbasis:')
+    print(round(prediction.predicted_mean.last('12M')))
+
     visualization_ts(df_number_of_accidents, prediction)
 
     print('\nSie können sich nun eine Map anzeigen lassen, in welcher die geährlichsten Unfallstellen in München dargstellt sind.')
