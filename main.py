@@ -4,6 +4,8 @@ from dateutil.relativedelta import relativedelta
 import folium
 from folium import plugins
 import webbrowser
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz, get_exog_data, prepare_number_of_accidents
 from utils import query_exception, query, kategorien, tools, monate_map, arten
 from model import sarima, pred_accident_severity_decision_tree, pred_accident_severity_nearest_neighbors, \
@@ -63,6 +65,10 @@ elif tool == 1:
     prediction = sarima.get_prediction(pred_start, pred_end, exog=wheater_data_2021[model_features])
     df_number_of_accidents = pd.concat([df_number_of_accidents['Count'], round(prediction.predicted_mean.last('12M'))])
     df_number_of_accidents = pd.DataFrame(df_number_of_accidents).rename(columns = {0: 'Count'})
+
+    #Validierung des SARIMAX Modells anhand des MSE und MAE bezogen auf das Jahr 2020. Vergleich der Scores mit dem Modell ohne exogene Variablen.
+    mse_value = round(mean_squared_error(df_number_of_accidents['Count'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
+    mae_value = round(mean_absolute_error(df_number_of_accidents['Count'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
 
     print('\nVorhersage der Unfallzahlen auf Monatsbasis:')
     print(round(prediction.predicted_mean.last('12M')))
