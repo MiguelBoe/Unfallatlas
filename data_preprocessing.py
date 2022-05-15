@@ -9,8 +9,9 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.stattools import adfuller
 import matplotlib.pyplot as plt
 import matplotlib
+#from main import wheater_data_munich, wheater_data_ger
 
-# Einlesen der Daten ___________________________________________________________________________________________________
+# Einlesen der Daten.___________________________________________________________________________________________________
 
 def get_data():
 
@@ -120,9 +121,8 @@ df_unfallatlas = pred_IstGkfz(df_unfallatlas = df_unfallatlas)
 
 # Einlesen und Vorbereiten der exogenen Daten.__________________________________________________________________________
 
-def get_exog_data():
+def get_wheater_data(wheater_data):
 
-    wheater_data = pd.read_csv('exog_data/Wetterdaten_München.csv', sep = ';')
     wheater_data['Temperatur Mittelwert'] = wheater_data['Temperatur Mittelwert'].apply(lambda a: a.replace(",", ".")).astype(float)
     wheater_data['Niederschlagmenge in Summe Liter pro qm'] = wheater_data['Niederschlagmenge in Summe Liter pro qm'].apply(lambda a: a.replace(",", ".")).astype(float)
     wheater_data['Sonnenscheindauer in Summe in Stunden'] = wheater_data['Sonnenscheindauer in Summe in Stunden'].apply(lambda a: a.replace(",", ".")).astype(float)
@@ -133,11 +133,9 @@ def get_exog_data():
 
     return wheater_data
 
-wheater_data = get_exog_data()
-
 # Vorbereitung der Zeireihe und kurze Analyse.__________________________________________________________________________
 
-def prepare_number_of_accidents(df_unfallatlas, ags, wheater_data, visualization_mode):
+def prepare_number_of_accidents(df_unfallatlas, ags, wheater_data_munich, visualization_mode):
 
     #Index to datetime. Allerdings Problem wegen des Tages. Dieser ist ja nicht angegeben. Habe für Testzwecke mal den Wochentag genommen.
     df_number_of_accidents = df_unfallatlas[(df_unfallatlas['AGS'] == ags)].reset_index(drop = True)
@@ -170,8 +168,17 @@ def prepare_number_of_accidents(df_unfallatlas, ags, wheater_data, visualization
     for key, val in adf_test[4].items():
         print('\t', key, ': ', val)
 
-    df_number_of_accidents = pd.concat([df_number_of_accidents, wheater_data], axis = 1)
-    wheater_data_2021 = df_number_of_accidents.tail(12)
+    df_number_of_accidents = pd.concat([df_number_of_accidents, wheater_data_munich], axis = 1)
+    wheater_data_munich_2021 = df_number_of_accidents.tail(12)
     df_number_of_accidents = df_number_of_accidents.dropna()
 
-    return df_number_of_accidents, wheater_data_2021
+    return df_number_of_accidents, wheater_data_munich_2021
+
+def add_exog_data(df_unfallatlas, wheater_data_ger):
+
+    wheater_data_ger['UJAHR'] = wheater_data_ger.index.year
+    wheater_data_ger['UMONAT'] = wheater_data_ger.index.month
+    df_unfallatlas = df_unfallatlas.merge(wheater_data_ger, how='outer', on= ['ULAND', 'UJAHR', 'UMONAT'])
+    df_unfallatlas.dropna(inplace=True)
+
+    return df_unfallatlas

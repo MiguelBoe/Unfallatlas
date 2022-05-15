@@ -2,7 +2,7 @@ import pandas as pd
 import datetime
 
 #Übersichtlichere Daten.
-tools = {0: 'Vorhersage der schwere eines Unfalls.', 1: 'Vorhersage der Anzahl der Unfälle für das Jahr 2021.'}
+tools = {0: 'Vorhersage der Schwere eines Unfalls.', 1: 'Vorhersage der Anzahl der Unfälle für das Jahr 2021.'}
 
 monate = {
         1: 'Januar', 2: 'Februar', 3: 'März', 4: 'April', 5: 'Mai',

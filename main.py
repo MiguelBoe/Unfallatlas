@@ -6,7 +6,7 @@ from folium import plugins
 import webbrowser
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
-from data_preprocessing import get_data, preprocessing, pred_IstGkfz, get_exog_data, prepare_number_of_accidents
+from data_preprocessing import get_data, preprocessing, pred_IstGkfz, get_wheater_data, prepare_number_of_accidents, add_exog_data
 from utils import query_exception, query, kategorien, tools, monate_map, arten
 from model import sarima, pred_accident_severity_decision_tree, pred_accident_severity_nearest_neighbors, \
                   grid_search, visualization_ts
@@ -17,17 +17,27 @@ ags = '09162000'
 model_features = ['Temperatur Mittelwert', 'Niederschlagmenge in Summe Liter pro qm', 'Sonnenscheindauer in Summe in Stunden']
 visualization_mode = False
 
+#Exogene Daten
+wheater_data_munich = pd.read_csv('exog_data/Wetterdaten_München.csv', sep = ';')
+wheater_data_ger = pd.read_csv('exog_data/Wetterdaten_Deutschland.csv', sep = ';')
+
 #Begrüßung.
 print('\n##################################################')
 print('Willkommen beim Unfallvorhersage-Tool für München!')
 print('##################################################\n')
-print('Einlesen und Verarbeiten der Daten ...')
+print('Einlesen und verarbeiten der Daten ...')
 
-#Einlesen und Verarbeiten der Daten.
+#Einlesen und verarbeiten der Unfalldaten.
 df_unfallatlas = get_data()
 df_unfallatlas = preprocessing(df_unfallatlas)
 df_unfallatlas = pred_IstGkfz(df_unfallatlas)
-wheater_data = get_exog_data()
+
+#Einlesen und verarbeiten der Wetterdaten.
+wheater_data_munich = get_wheater_data(wheater_data_munich)
+wheater_data_ger = get_wheater_data(wheater_data_ger)
+
+#Hinzufügen der exogenen Daten.
+df_unfallatlas = add_exog_data(df_unfallatlas, wheater_data_ger)
 print('Daten verarbeitet!')
 
 #Auswahl der Vorhersage.
@@ -56,13 +66,13 @@ elif tool == 1:
     print('####################################################\n')
 
     #Erstellung des Modells mit vorheriger Grid Search zur Definition der besten Parameter für das Modell.
-    df_number_of_accidents, wheater_data_2021 = prepare_number_of_accidents(df_unfallatlas, ags, wheater_data, visualization_mode)
+    df_number_of_accidents, wheater_data_munich_2021 = prepare_number_of_accidents(df_unfallatlas, ags, wheater_data_munich, visualization_mode)
     bestAIC, bestParam, bestSParam = grid_search(y = df_number_of_accidents['Count'], x = df_number_of_accidents[model_features])
     sarima = sarima(bestParam, bestSParam, visualization_mode, y = df_number_of_accidents['Count'], x = df_number_of_accidents[model_features])
 
     #Vorhersage der Anzahl der Unfälle für das Jahr 2021.
     pred_start, pred_end = str(np.min(df_number_of_accidents.index) + relativedelta(months = 48)), str(np.max(df_number_of_accidents.index) + relativedelta(months=12))
-    prediction = sarima.get_prediction(pred_start, pred_end, exog=wheater_data_2021[model_features])
+    prediction = sarima.get_prediction(pred_start, pred_end, exog=wheater_data_munich_2021[model_features])
     df_number_of_accidents = pd.concat([df_number_of_accidents['Count'], round(prediction.predicted_mean.last('12M'))])
     df_number_of_accidents = pd.DataFrame(df_number_of_accidents).rename(columns = {0: 'Count'})
 
