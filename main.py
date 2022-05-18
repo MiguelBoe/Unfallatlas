@@ -10,7 +10,7 @@ from sklearn.metrics import mean_absolute_error
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz, get_wheater_data, prepare_number_of_accidents, add_exog_data
 from utils import query_exception, query, kategorien, tools, monate_map, arten
 from model import sarima, pred_accident_severity_decision_tree, pred_accident_severity_nearest_neighbors, \
-                  grid_search, visualization_ts, pred_accident_severity_gaussian_nb
+                  grid_search, visualization_ts, pred_accident_severity_gaussian_nb, statistical_determination_accident_severity
 
 #Parameter
 selection = None
@@ -64,8 +64,20 @@ if tool == 0:
     except:
         model = pred_accident_severity_nearest_neighbors(df_unfallatlas)
 
+    #Abfrage der Unfalldaten.
     prediction = query()
-    accident_severity = model.predict(prediction)
+
+    #Bestimmung der Unfallkategorie.
+    '''
+    Bestimmung des Modus der Zielvariable UKATEGORIE anhand der Eingabeparameter. Wenn es keine Unfälle zu diesen
+    Parametern gibt, wird die schwere des Unfalls mit dem Modell (kNN) bestimmt.
+    Vielleicht noch die Wahrscheinlichkeit der Unfallkategorie ausgeben.
+    '''
+    try:
+        accident_severity = statistical_determination_accident_severity(df_unfallatlas, prediction)
+        accident_severity = accident_severity['UKATEGORIE'].mode()[0]
+    except:
+        accident_severity = model.predict(prediction)
 
     #Ausgabe der Unfallkategorie
     print('\nUnfallkategorie:\t', kategorien[accident_severity[0]])

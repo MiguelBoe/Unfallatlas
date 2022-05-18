@@ -107,7 +107,7 @@ def pred_accident_severity_decision_tree(df_unfallatlas):
 
     #Training der Daten.
     decision_tree_clf = DecisionTreeClassifier(max_depth = 10, random_state=1).fit(X_train, y_train)
-    joblib.dump(decision_tree_clf, '/models/decision_tree_model.sav')
+    joblib.dump(decision_tree_clf, 'models/decision_tree_model.sav')
 
     #Validierung des Modells.
     results = pd.DataFrame(decision_tree_clf.predict(X_test), index = X_test.index)
@@ -130,7 +130,7 @@ def pred_accident_severity_nearest_neighbors(df_unfallatlas):
 
     #Training der Daten.
     knn_clf = KNeighborsClassifier(n_neighbors = 3).fit(X_train, y_train)
-    joblib.dump(knn_clf, '/models/knn_model.sav')
+    joblib.dump(knn_clf, 'models/knn_model.sav')
 
     #Validierung des Modells.
     results = pd.DataFrame(knn_clf.predict(X_test), index = X_test.index)
@@ -153,7 +153,7 @@ def pred_accident_severity_gaussian_nb(df_unfallatlas):
 
     #Training der Daten.
     gaussian_nb = GaussianNB().fit(X_train, y_train)
-    joblib.dump(gaussian_nb, '/models/gaussian_nb_model.sav')
+    joblib.dump(gaussian_nb, 'models/gaussian_nb_model.sav')
 
     #Validierung des Modells.
     results = pd.DataFrame(gaussian_nb.predict(X_test), index = X_test.index)
@@ -164,3 +164,18 @@ def pred_accident_severity_gaussian_nb(df_unfallatlas):
     #print('\nAccuracy-Score des Modells:', round(score, 2))
 
     return gaussian_nb
+
+def statistical_determination_accident_severity(df_unfallatlas, prediction):
+
+    accident_severity = df_unfallatlas[(df_unfallatlas['UMONAT'] == prediction['UMONAT'][0]) &
+          (df_unfallatlas['USTUNDE'] == prediction['USTUNDE'][0]) &
+          (df_unfallatlas['UWOCHENTAG'] == prediction['UWOCHENTAG'][0]) &
+          (df_unfallatlas['UART'] == prediction['UART'][0]) &
+          (df_unfallatlas['IstRad'] == prediction['IstRad'][0]) &
+          (df_unfallatlas['IstPKW'] == prediction['IstPKW'][0]) &
+          (df_unfallatlas['IstFuss'] == prediction['IstFuss'][0]) &
+          (df_unfallatlas['IstKrad'] == prediction['IstKrad'][0]) &
+          (df_unfallatlas['IstGkfz'] == prediction['IstGkfz'][0]) &
+          (df_unfallatlas['IstSonstige'] == prediction['IstSonstige'][0])]
+
+    return accident_severity
