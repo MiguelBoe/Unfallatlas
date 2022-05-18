@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from dateutil.relativedelta import relativedelta
+import joblib
 import folium
 from folium import plugins
 import webbrowser
@@ -9,17 +10,18 @@ from sklearn.metrics import mean_absolute_error
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz, get_wheater_data, prepare_number_of_accidents, add_exog_data
 from utils import query_exception, query, kategorien, tools, monate_map, arten
 from model import sarima, pred_accident_severity_decision_tree, pred_accident_severity_nearest_neighbors, \
-                  grid_search, visualization_ts
+                  grid_search, visualization_ts, pred_accident_severity_gaussian_nb
 
 #Parameter
 selection = None
 ags = '09162000'
 model_features = ['Temperatur Mittelwert', 'Niederschlagmenge in Summe Liter pro qm', 'Sonnenscheindauer in Summe in Stunden']
 visualization_mode = False
+load_model_accident_severity = 'knn_model' #decision_tree_model, knn_model, gaussian_nb_model
 
 #Exogene Daten
-wheater_data_munich = pd.read_csv('exog_data/Wetterdaten_München.csv', sep = ';')
-wheater_data_ger = pd.read_csv('exog_data/Wetterdaten_Deutschland.csv', sep = ';')
+wheater_data_munich = pd.read_csv('data/exog_data/Wetterdaten_München.csv', sep =';')
+#wheater_data_ger = pd.read_csv('exog_data/Wetterdaten_Deutschland.csv', sep = ';')
 
 #Begrüßung.
 print('\n##################################################')
@@ -27,17 +29,22 @@ print('Willkommen beim Unfallvorhersage-Tool für München!')
 print('##################################################\n')
 print('Einlesen und verarbeiten der Daten ...')
 
-#Einlesen und verarbeiten der Unfalldaten.
-df_unfallatlas = get_data()
-df_unfallatlas = preprocessing(df_unfallatlas)
-df_unfallatlas = pred_IstGkfz(df_unfallatlas)
+# Einlesen und verarbeiten der Unfalldaten.
+try:
+    df_unfallatlas = pd.read_csv('data/df_unfallatlas.csv', delimiter=';', low_memory=False)
+    df_unfallatlas['AGS'] = df_unfallatlas['AGS'].astype(str).str.zfill(8)
+except:
+    df_unfallatlas = get_data()
+    df_unfallatlas = preprocessing(df_unfallatlas)
+    df_unfallatlas = pred_IstGkfz(df_unfallatlas)
+    df_unfallatlas.to_csv('data/df_unfallatlas.csv', sep=  ';', index=False)
 
 #Einlesen und verarbeiten der Wetterdaten.
 wheater_data_munich = get_wheater_data(wheater_data_munich)
-wheater_data_ger = get_wheater_data(wheater_data_ger)
+#wheater_data_ger = get_wheater_data(wheater_data_ger)
 
 #Hinzufügen der exogenen Daten.
-df_unfallatlas = add_exog_data(df_unfallatlas, wheater_data_ger)
+#df_unfallatlas = add_exog_data(df_unfallatlas, wheater_data_ger)
 print('Daten verarbeitet!')
 
 #Auswahl der Vorhersage.
@@ -51,8 +58,12 @@ if tool == 0:
     print('#####################################\n')
     print('Erstellung des Modells ...\n')
 
-    #grid_search_knn(df_unfallatlas)
-    model = pred_accident_severity_nearest_neighbors(df_unfallatlas)
+    #Laden des Modells.
+    try:
+        model = joblib.load(f'models/{load_model_accident_severity}.sav')
+    except:
+        model = pred_accident_severity_nearest_neighbors(df_unfallatlas)
+
     prediction = query()
     accident_severity = model.predict(prediction)
 

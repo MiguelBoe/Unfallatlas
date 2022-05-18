@@ -1,3 +1,3 @@
-1. zusätzlichen Datensatz (Wetterdaten München) Alkoholdatensatz(Unfalldaten)
+1. zusätzlichen Daten: Alkoholdatensatz(Unfalldaten), Mobilitätsdaten, Benzinpreise
 2. EDA 
-3. verschiedene Modelle testen (für kurzfristige Prognose)
+3. verschiedene Modelle testen (für kurzfristige Prognose). Unbedingt das Modell verbessern.

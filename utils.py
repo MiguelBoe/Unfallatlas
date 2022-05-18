@@ -114,10 +114,10 @@ def query():
     print('Unfallstunde:\t\t', USTUNDE, 'Uhr')
     print('Unfallwochentag:\t', wochentage[UWOCHENTAG])
 
-    prediction = pd.DataFrame({'ULAND': ULAND,
-                               'UREGBEZ': UREGBEZ,
-                               'UKREIS': UKREIS,
-                               'UGEMEINDE': UGEMEINDE,
+    prediction = pd.DataFrame({#'ULAND': ULAND,
+                               #'UREGBEZ': UREGBEZ,
+                               #'UKREIS': UKREIS,
+                               #'UGEMEINDE': UGEMEINDE,
                                'UMONAT': UMONAT,
                                'USTUNDE': USTUNDE,
                                'UWOCHENTAG': UWOCHENTAG,
@@ -127,7 +127,7 @@ def query():
                                'IstFuss': IstFuss,
                                'IstKrad': IstKrad,
                                'IstGkfz': IstGkfz,
-                               'IstSonstige': IstSonstige
+                               'IstSonstige': IstSonstige,
                                }, index=[0])
 
     return prediction

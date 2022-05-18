@@ -5,12 +5,15 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score
 import itertools
 import statsmodels.api as sm
 import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
 from sklearn.model_selection import GridSearchCV
+import joblib
 
 warnings.simplefilter('ignore', ConvergenceWarning)
 
@@ -104,9 +107,11 @@ def pred_accident_severity_decision_tree(df_unfallatlas):
 
     #Training der Daten.
     decision_tree_clf = DecisionTreeClassifier(max_depth = 10, random_state=1).fit(X_train, y_train)
+    joblib.dump(decision_tree_clf, '/models/decision_tree_model.sav')
 
     #Validierung des Modells.
     results = pd.DataFrame(decision_tree_clf.predict(X_test), index = X_test.index)
+    results['y_test'] = y_test
 
     #Überprüfung der Genauigkeit des Modells.
     score = accuracy_score(y_test, results)
@@ -117,47 +122,45 @@ def pred_accident_severity_decision_tree(df_unfallatlas):
 def pred_accident_severity_nearest_neighbors(df_unfallatlas):
 
     #Definition von X und y.
-    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND'], axis=1)
+    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
     y = df_unfallatlas['UKATEGORIE']
 
     #Splitten der Daten in Test- und Training-Set.
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
 
     #Training der Daten.
-    knn_clf = KNeighborsClassifier(n_neighbors = 1).fit(X_train, y_train)
+    knn_clf = KNeighborsClassifier(n_neighbors = 3).fit(X_train, y_train)
+    joblib.dump(knn_clf, '/models/knn_model.sav')
 
     #Validierung des Modells.
     results = pd.DataFrame(knn_clf.predict(X_test), index = X_test.index)
+    results['y_test'] = y_test
 
     #Überprüfung der Genauigkeit des Modells.
-    score = accuracy_score(y_test, results)
+    score = accuracy_score(y_test, results[0])
     #print('\nAccuracy-Score des Modells:', round(score, 2))
 
     return knn_clf
 
-def grid_search_knn(df_unfallatlas):
-    # Definition von X und y.
-    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND'], axis=1)
+def pred_accident_severity_gaussian_nb(df_unfallatlas):
+
+    #Definition von X und y.
+    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
     y = df_unfallatlas['UKATEGORIE']
 
-    #List Hyperparameters that we want to tune.
-    leaf_size = list(range(1,10))
-    n_neighbors = list(range(1,10))
-    p=[1,2]
+    #Splitten der Daten in Test- und Training-Set.
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
 
-    #Convert to dictionary
-    hyperparameters = dict(leaf_size=leaf_size, n_neighbors=n_neighbors, p=p)
+    #Training der Daten.
+    gaussian_nb = GaussianNB().fit(X_train, y_train)
+    joblib.dump(gaussian_nb, '/models/gaussian_nb_model.sav')
 
-    #Create new KNN object
-    knn_2 = KNeighborsClassifier()
+    #Validierung des Modells.
+    results = pd.DataFrame(gaussian_nb.predict(X_test), index = X_test.index)
+    results['y_test'] = y_test
 
-    #Use GridSearch
-    clf = GridSearchCV(knn_2, hyperparameters, cv=10)
+    #Überprüfung der Genauigkeit des Modells.
+    score = accuracy_score(y_test, results[0])
+    #print('\nAccuracy-Score des Modells:', round(score, 2))
 
-    #Fit the model
-    best_model = clf.fit(X,y)
-
-    #Print The value of best Hyperparameters
-    print('Best leaf_size:', best_model.best_estimator_.get_params()['leaf_size'])
-    print('Best p:', best_model.best_estimator_.get_params()['p'])
-    print('Best n_neighbors:', best_model.best_estimator_.get_params()['n_neighbors'])
+    return gaussian_nb

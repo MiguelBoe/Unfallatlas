@@ -16,7 +16,7 @@ import matplotlib
 def get_data():
 
     # Einlesen der Daten und Verknüpfung in einem DataFrame.
-    files = glob.glob('data/*.csv')
+    files = glob.glob('data/raw_data/*.csv')
     df_unfallatlas = pd.DataFrame()
     for f in files:
         csv = pd.read_csv(f, delimiter = ';', low_memory = False)
