@@ -67,21 +67,38 @@ if tool == 0:
     #Abfrage der Unfalldaten.
     prediction = query()
 
-    #Bestimmung der Unfallkategorie.
     '''
     Bestimmung des Modus der Zielvariable UKATEGORIE anhand der Eingabeparameter. Wenn es keine Unfälle zu diesen
     Parametern gibt, wird die schwere des Unfalls mit dem Modell (kNN) bestimmt.
-    Vielleicht noch die Wahrscheinlichkeit der Unfallkategorie ausgeben.
     '''
     try:
+        # Bestimmung der Unfallkategorie.
         accident_severity = statistical_determination_accident_severity(df_unfallatlas, prediction)
-        accident_severity = accident_severity['UKATEGORIE'].mode()[0]
+
+        # Berechnung der Wahrscheinlichkeit der Unfallkategorie.
+        accident_severity_probability = round(accident_severity.groupby('UKATEGORIE').size().div(len(accident_severity))*100, 2)
+
+        #Bestimmung der Unfallkategorie mit der höchsten Wahrscheinlichkeit.
+        accident_severity = accident_severity['UKATEGORIE'].mode()
+
+        #Ausgabe der Wahrscheinlichkeit der Unfallkategorien.
+        if accident_severity[0] != 0:
+            print('\nWahrscheinlichkeit der Schwere des Unfalls:')
+
+        for probability in accident_severity_probability:
+            print(f'{kategorien[accident_severity_probability[accident_severity_probability == probability].index[0]]}\t', probability, '%')
+
+        # Ausgabe der vorhergesagten Unfallkategorie.
+        print('\nUnfallkategorie:\t', kategorien[accident_severity[0]])
+        print('################################################\n')
+
     except:
+        # Bestimmung der Unfallkategorie.
         accident_severity = model.predict(prediction)
 
-    #Ausgabe der Unfallkategorie
-    print('\nUnfallkategorie:\t', kategorien[accident_severity[0]])
-    print('####################################################\n')
+        # Ausgabe der Unfallkategorie
+        print('\nUnfallkategorie:\t', kategorien[accident_severity[0]])
+        print('################################################\n')
 
 elif tool == 1:
     print('\n####################################################')

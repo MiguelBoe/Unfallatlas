@@ -32,7 +32,7 @@ arten = {
         }
 
 kategorien = {
-        1: 'Unfall mit Getöteten',
+        1: 'Unfall mit Getöteten       ',
         2: 'Unfall mit Schwerverletzten',
         3: 'Unfall mit Leichtverletzten',
         }
@@ -108,7 +108,7 @@ def query():
     print(message, '\n')
     IstSonstige = query_exception(dict = jaodernein, message = message)
 
-    print('\n####################################################')
+    print('\n################################################')
     print('Zeitpunkt des Unfalls in München:')
     print('Unfallmonat:\t\t', monate[UMONAT])
     print('Unfallstunde:\t\t', USTUNDE, 'Uhr')
