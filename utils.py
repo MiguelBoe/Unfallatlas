@@ -67,10 +67,10 @@ def query_exception(dict, message):
 def query():
 
     #Gemeinde
-    ULAND = 9
-    UREGBEZ = 1
-    UKREIS = 62
-    UGEMEINDE = 0
+    #ULAND = 9
+    #UREGBEZ = 1
+    #UKREIS = 62
+    #UGEMEINDE = 0
 
     #Zeitpunkt
     now = datetime.datetime.now()
@@ -113,6 +113,7 @@ def query():
     print('Unfallmonat:\t\t', monate[UMONAT])
     print('Unfallstunde:\t\t', USTUNDE, 'Uhr')
     print('Unfallwochentag:\t', wochentage[UWOCHENTAG])
+    #print('\nUnfallart:\t', arten[UART])
 
     prediction = pd.DataFrame({#'ULAND': ULAND,
                                #'UREGBEZ': UREGBEZ,
