@@ -96,30 +96,7 @@ def visualization_ts(df_number_of_accidents, prediction):
 
 #Vorhersage der schwere des Unfalls.____________________________________________________________________________________
 
-def pred_accident_severity_decision_tree(df_unfallatlas):
-
-    #Definition von X und y.
-    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND'], axis=1)
-    y = df_unfallatlas['UKATEGORIE']
-
-    #Splitten der Daten in Test- und Training-Set.
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
-
-    #Training der Daten.
-    decision_tree_clf = DecisionTreeClassifier(max_depth = 10, random_state=1).fit(X_train, y_train)
-    joblib.dump(decision_tree_clf, 'models/decision_tree_model.sav')
-
-    #Validierung des Modells.
-    results = pd.DataFrame(decision_tree_clf.predict(X_test), index = X_test.index)
-    results['y_test'] = y_test
-
-    #Überprüfung der Genauigkeit des Modells.
-    score = accuracy_score(y_test, results)
-    #print('\nAccuracy-Score des Modells:', round(score, 2))
-
-    return decision_tree_clf
-
-def pred_accident_severity_nearest_neighbors(df_unfallatlas):
+def pred_accident_severity_decision_tree(df_unfallatlas, adjusted_score):
 
     #Definition von X und y.
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
@@ -129,20 +106,24 @@ def pred_accident_severity_nearest_neighbors(df_unfallatlas):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
 
     #Training der Daten.
-    knn_clf = KNeighborsClassifier(n_neighbors = 3).fit(X_train, y_train)
-    joblib.dump(knn_clf, 'models/knn_model.sav')
+    decision_tree_model = DecisionTreeClassifier(max_depth = 10, random_state=1).fit(X_train, y_train)
+    joblib.dump(decision_tree_model, 'models/decision_tree_model.sav')
 
     #Validierung des Modells.
-    results = pd.DataFrame(knn_clf.predict(X_test), index = X_test.index)
+    results = pd.DataFrame(decision_tree_model.predict(X_test), index = X_test.index)
     results['y_test'] = y_test
 
+    # Bereinigter Score. Dafür wurden alle Zeilen mit der Unfallkategorie entfernt.
+    if adjusted_score:
+        results = results.drop(results[results.y_test == 3].index)
+
     #Überprüfung der Genauigkeit des Modells.
-    score = accuracy_score(y_test, results[0])
+    score = accuracy_score(results['y_test'], results[0])
     #print('\nAccuracy-Score des Modells:', round(score, 2))
 
-    return knn_clf
+    return decision_tree_model
 
-def pred_accident_severity_gaussian_nb(df_unfallatlas):
+def pred_accident_severity_nearest_neighbors(df_unfallatlas, adjusted_score):
 
     #Definition von X und y.
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
@@ -152,18 +133,49 @@ def pred_accident_severity_gaussian_nb(df_unfallatlas):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
 
     #Training der Daten.
-    gaussian_nb = GaussianNB().fit(X_train, y_train)
-    joblib.dump(gaussian_nb, 'models/gaussian_nb_model.sav')
+    knn_model = KNeighborsClassifier(n_neighbors = 3).fit(X_train, y_train)
+    joblib.dump(knn_model, 'models/knn_model.sav')
 
     #Validierung des Modells.
-    results = pd.DataFrame(gaussian_nb.predict(X_test), index = X_test.index)
+    results = pd.DataFrame(knn_model.predict(X_test), index = X_test.index)
     results['y_test'] = y_test
 
+    #Bereinigter Score. Dafür wurden alle Zeilen mit der Unfallkategorie entfernt.
+    if adjusted_score:
+        results = results.drop(results[results.y_test == 3].index)
+
     #Überprüfung der Genauigkeit des Modells.
-    score = accuracy_score(y_test, results[0])
+    score = accuracy_score(results['y_test'], results[0])
     #print('\nAccuracy-Score des Modells:', round(score, 2))
 
-    return gaussian_nb
+    return knn_model
+
+def pred_accident_severity_gaussian_nb(df_unfallatlas, adjusted_score):
+
+    #Definition von X und y.
+    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
+    y = df_unfallatlas['UKATEGORIE']
+
+    #Splitten der Daten in Test- und Training-Set.
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
+
+    #Training der Daten.
+    gaussian_nb_model = GaussianNB().fit(X_train, y_train)
+    joblib.dump(gaussian_nb_model, 'models/gaussian_nb_model.sav')
+
+    #Validierung des Modells.
+    results = pd.DataFrame(gaussian_nb_model.predict(X_test), index = X_test.index)
+    results['y_test'] = y_test
+
+    # Bereinigter Score. Dafür wurden alle Zeilen mit der Unfallkategorie entfernt.
+    if adjusted_score:
+        results = results.drop(results[results.y_test == 3].index)
+
+    #Überprüfung der Genauigkeit des Modells.
+    score = accuracy_score(results['y_test'], results[0])
+    #print('\nAccuracy-Score des Modells:', round(score, 2))
+
+    return gaussian_nb_model
 
 def statistical_determination_accident_severity(df_unfallatlas, prediction):
 

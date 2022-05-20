@@ -9,15 +9,15 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz, get_wheater_data, prepare_number_of_accidents, add_exog_data
 from utils import query_exception, query, kategorien, tools, monate_map, arten
-from model import sarima, pred_accident_severity_decision_tree, pred_accident_severity_nearest_neighbors, \
-                  grid_search, visualization_ts, pred_accident_severity_gaussian_nb, statistical_determination_accident_severity
+from model import *
 
 #Parameter
 selection = None
 ags = '09162000'
 model_features = ['Temperatur Mittelwert', 'Niederschlagmenge in Summe Liter pro qm', 'Sonnenscheindauer in Summe in Stunden']
 visualization_mode = False
-load_model_accident_severity = 'knn_model' #decision_tree_model, knn_model, gaussian_nb_model
+adjusted_score = True
+model_accident_severity = 'knn_model' #decision_tree_model, knn_model, gaussian_nb_model
 
 #Exogene Daten
 wheater_data_munich = pd.read_csv('data/exog_data/Wetterdaten_München.csv', sep =';')
@@ -60,9 +60,14 @@ if tool == 0:
 
     #Laden des Modells.
     try:
-        model = joblib.load(f'models/{load_model_accident_severity}.sav')
+        model = joblib.load(f'models/{model_accident_severity}.sav')
     except:
-        model = pred_accident_severity_nearest_neighbors(df_unfallatlas)
+        if model_accident_severity == 'knn_model':
+            model = pred_accident_severity_nearest_neighbors(df_unfallatlas, adjusted_score)
+        elif model_accident_severity == 'gaussian_nb_model':
+            model = pred_accident_severity_gaussian_nb(df_unfallatlas, adjusted_score)
+        elif model_accident_severity == 'decision_tree_model':
+            model = pred_accident_severity_decision_tree(df_unfallatlas, adjusted_score)
 
     #Abfrage der Unfalldaten.
     prediction = query()
