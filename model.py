@@ -14,6 +14,7 @@ from statsmodels.tsa.stattools import adfuller
 import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
 from sklearn import svm
+import joblib
 
 warnings.simplefilter('ignore', ConvergenceWarning)
 
@@ -31,6 +32,7 @@ def pred_accident_severity(df_unfallatlas):
 
     #Training der Daten.
     decision_tree_classification = DecisionTreeClassifier(max_depth=10, random_state=1).fit(X_train, y_train)
+    joblib.dump(decision_tree_classification, '/test/')
 
     #Validierung des Modells.
     results = pd.DataFrame(decision_tree_classification.predict(X_test), index=X_test.index)
@@ -51,7 +53,7 @@ def pred_accident_severity_svm(df_unfallatlas):
     X_SVM_train, X_SVM_test, y_SVM_train, y_SVM_test = train_test_split(X_SVM, y_SVM, test_size=0.20)
 
     #Generierung svm-Classifier
-    clf = svm.SVC(kernel = 'linear')
+    clf = svm.SVC(kernel = 'rbf')
 
     #Training der Daten.
     SVM = clf.fit(X_SVM_train, y_SVM_train)

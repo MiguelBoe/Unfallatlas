@@ -75,3 +75,4 @@ plt.title('Unfälle nach Wochentagen pro Jahr', fontsize=25, pad=20)
 plt.xticks(fontsize=15)
 plt.yticks(fontsize=15)
 plt.show()
+

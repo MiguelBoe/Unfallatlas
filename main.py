@@ -3,7 +3,8 @@ import folium
 from folium import plugins
 import webbrowser
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz
-from model import pred_accident_severity, sarima, pred_number_of_accidents, grid_search, visualization_ts
+from model import pred_accident_severity_svm, pred_accident_severity, sarima, pred_number_of_accidents, grid_search, visualization_ts
+
 
 #Parameter
 selection = None
@@ -19,6 +20,8 @@ print('Einlesen und Verarbeiten der Daten ...')
 df_unfallatlas = get_data()
 df_unfallatlas = preprocessing(df_unfallatlas)
 df_unfallatlas = pred_IstGkfz(df_unfallatlas)
+
+
 
 #Auswahl der Vorhersage.
 print('Daten verarbeitet!')
@@ -43,6 +46,7 @@ if selection == 0:
     print('Vorhersage der schwere eines Unfalls.')
     print('#####################################\n')
     decision_tree_classification = pred_accident_severity(df_unfallatlas)
+    #results_SVM = pred_accident_severity_svm(df_unfallatlas)
 
 elif selection == 1:
     print('\n####################################################')
