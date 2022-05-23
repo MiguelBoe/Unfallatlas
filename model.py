@@ -100,7 +100,37 @@ def visualization_ts(df_number_of_accidents, prediction):
 
 #Vorhersage der schwere des Unfalls.____________________________________________________________________________________
 
-#RandomForest mit RandomUndersampling als Baseline Modell.
+#DecisionTree mit RandomUndersampling als Baseline Modell.
+def pred_accident_severity_decision_tree(df_unfallatlas, adjusted_score, undersampling_mode):
+
+    #Definition von X und y.
+    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
+    y = df_unfallatlas['UKATEGORIE']
+
+    #Splitten der Daten in Test- und Training-Set.
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
+
+    # Undersampling.
+    X_train, y_train = undersampling(X_train, y_train, undersampling_mode)
+
+    #Training der Daten.
+    decision_tree_model = DecisionTreeClassifier(max_depth = 10).fit(X_train, y_train)
+    #joblib.dump(decision_tree_model, 'models/decision_tree_model.sav')
+
+    #Validierung des Modells.
+    results = pd.DataFrame(decision_tree_model.predict(X_test), index = X_test.index)
+    results['y_test'] = y_test
+
+    # Bereinigter Score. Dafür wurden alle Zeilen mit der Unfallkategorie entfernt.
+    if adjusted_score:
+        results = results.drop(results[results.y_test == 3].index)
+
+    #Überprüfung der Genauigkeit des Modells.
+    score = accuracy_score(results['y_test'], results[0])
+    clf_report = classification_report(results['y_test'], results[0])
+
+    return decision_tree_model
+
 def pred_accident_severity_random_forest(df_unfallatlas, adjusted_score, undersampling_mode):
 
     #Definition von X und y.
@@ -115,7 +145,7 @@ def pred_accident_severity_random_forest(df_unfallatlas, adjusted_score, undersa
 
     #Training der Daten.
     random_forest_model = RandomForestClassifier(max_depth = 10).fit(X_train, y_train)
-    joblib.dump(random_forest_model, 'models/random_forest_model.sav')
+    #joblib.dump(random_forest_model, 'models/random_forest_model.sav')
 
     #Validierung des Modells.
     results = pd.DataFrame(random_forest_model.predict(X_test), index = X_test.index)

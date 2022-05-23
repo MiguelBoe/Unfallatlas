@@ -16,7 +16,7 @@ selection = None
 ags = '09162000'
 model_features = ['Temperatur Mittelwert', 'Niederschlagmenge in Summe Liter pro qm', 'Sonnenscheindauer in Summe in Stunden']
 visualization_mode = False
-model_accident_severity = 'gaussian_nb_model' #knn_model, gaussian_nb_model, random_forest_model, svm_model
+model_accident_severity = 'decision_tree_model' #decision_tree_model, random_forest_model, gaussian_nb_model, svm_model, knn_model
 undersampling_mode = 'random' #random, nearmiss, False
 adjusted_score = False
 
@@ -65,10 +65,12 @@ if tool == 0:
     except:
         if model_accident_severity == 'knn_model':
             model = pred_accident_severity_nearest_neighbors(df_unfallatlas, adjusted_score, undersampling_mode)
-        elif model_accident_severity == 'gaussian_nb_model':
-            model = pred_accident_severity_gaussian_nb(df_unfallatlas, adjusted_score, undersampling_mode)
+        elif model_accident_severity == 'decision_tree_model':
+            model = pred_accident_severity_decision_tree(df_unfallatlas, adjusted_score, undersampling_mode)
         elif model_accident_severity == 'random_forest_model':
             model = pred_accident_severity_random_forest(df_unfallatlas, adjusted_score, undersampling_mode)
+        elif model_accident_severity == 'gaussian_nb_model':
+            model = pred_accident_severity_gaussian_nb(df_unfallatlas, adjusted_score, undersampling_mode)
         elif model_accident_severity == 'svm_model':
             model = pred_accident_severity_svm(df_unfallatlas, adjusted_score, undersampling_mode)
 
