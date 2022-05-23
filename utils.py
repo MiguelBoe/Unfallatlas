@@ -1,5 +1,6 @@
 import pandas as pd
 import datetime
+from imblearn.under_sampling import RandomUnderSampler, NearMiss
 
 #Übersichtlichere Daten.
 tools = {0: 'Vorhersage der Schwere eines Unfalls.', 1: 'Vorhersage der Anzahl der Unfälle für das Jahr 2021.'}
@@ -132,3 +133,15 @@ def query():
                                }, index=[0])
 
     return prediction
+
+def undersampling(X_train, y_train, undersampling_mode):
+
+    # Undersampling.
+    if undersampling_mode == 'random':
+        rus = RandomUnderSampler(random_state=0)
+        X_train, y_train = rus.fit_resample(X_train, y_train)
+    elif undersampling_mode == 'nearmiss':
+        nearmiss = NearMiss(version=1)
+        X_train, y_train = nearmiss.fit_resample(X_train, y_train)
+
+    return X_train, y_train

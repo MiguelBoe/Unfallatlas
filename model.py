@@ -16,7 +16,7 @@ import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from imblearn.under_sampling import RandomUnderSampler, NearMiss
+from utils import undersampling
 import joblib
 
 warnings.simplefilter('ignore', ConvergenceWarning)
@@ -100,43 +100,8 @@ def visualization_ts(df_number_of_accidents, prediction):
 
 #Vorhersage der schwere des Unfalls.____________________________________________________________________________________
 
-#DecisionTree mit RandomUndersampling als Baseline Modell.
-def pred_accident_severity_decision_tree(df_unfallatlas, adjusted_score, undersampling):
-
-    #Definition von X und y.
-    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
-    y = df_unfallatlas['UKATEGORIE']
-
-    #Splitten der Daten in Test- und Training-Set.
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
-
-    #Undersampling.
-    if undersampling == 'random':
-        rus = RandomUnderSampler(random_state=0)
-        X_train, y_train = rus.fit_resample(X_train, y_train)
-    elif undersampling == 'nearmiss':
-        nearmiss = NearMiss(version=1)
-        X_train, y_train = nearmiss.fit_resample(X_train, y_train)
-
-    #Training der Daten.
-    decision_tree_model = DecisionTreeClassifier(max_depth = 10).fit(X_train, y_train)
-    joblib.dump(decision_tree_model, 'models/decision_tree_model.sav')
-
-    #Validierung des Modells.
-    results = pd.DataFrame(decision_tree_model.predict(X_test), index = X_test.index)
-    results['y_test'] = y_test
-
-    # Bereinigter Score. Dafür wurden alle Zeilen mit der Unfallkategorie entfernt.
-    if adjusted_score:
-        results = results.drop(results[results.y_test == 3].index)
-
-    #Überprüfung der Genauigkeit des Modells.
-    score = accuracy_score(results['y_test'], results[0])
-    clf_report = classification_report(results['y_test'], results[0])
-
-    return decision_tree_model
-
-def pred_accident_severity_random_forest(df_unfallatlas, adjusted_score, undersampling):
+#RandomForest mit RandomUndersampling als Baseline Modell.
+def pred_accident_severity_random_forest(df_unfallatlas, adjusted_score, undersampling_mode):
 
     #Definition von X und y.
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
@@ -146,12 +111,7 @@ def pred_accident_severity_random_forest(df_unfallatlas, adjusted_score, undersa
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
 
     # Undersampling.
-    if undersampling == 'random':
-        rus = RandomUnderSampler(random_state=0)
-        X_train, y_train = rus.fit_resample(X_train, y_train)
-    elif undersampling == 'nearmiss':
-        nearmiss = NearMiss(version=1)
-        X_train, y_train = nearmiss.fit_resample(X_train, y_train)
+    X_train, y_train = undersampling(X_train, y_train, undersampling_mode)
 
     #Training der Daten.
     random_forest_model = RandomForestClassifier(max_depth = 10).fit(X_train, y_train)
@@ -171,7 +131,7 @@ def pred_accident_severity_random_forest(df_unfallatlas, adjusted_score, undersa
 
     return random_forest_model
 
-def pred_accident_severity_gaussian_nb(df_unfallatlas, adjusted_score, undersampling):
+def pred_accident_severity_gaussian_nb(df_unfallatlas, adjusted_score, undersampling_mode):
 
     #Definition von X und y.
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
@@ -181,12 +141,7 @@ def pred_accident_severity_gaussian_nb(df_unfallatlas, adjusted_score, undersamp
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
 
     # Undersampling.
-    if undersampling == 'random':
-        rus = RandomUnderSampler(random_state=0)
-        X_train, y_train = rus.fit_resample(X_train, y_train)
-    elif undersampling == 'nearmiss':
-        nearmiss = NearMiss(version=1)
-        X_train, y_train = nearmiss.fit_resample(X_train, y_train)
+    X_train, y_train = undersampling(X_train, y_train, undersampling_mode)
 
     #Training der Daten.
     gaussian_nb_model = GaussianNB().fit(X_train, y_train)
@@ -206,7 +161,7 @@ def pred_accident_severity_gaussian_nb(df_unfallatlas, adjusted_score, undersamp
 
     return gaussian_nb_model
 
-def pred_accident_severity_svm(df_unfallatlas, adjusted_score, undersampling):
+def pred_accident_severity_svm(df_unfallatlas, adjusted_score, undersampling_mode):
 
     # Definition von X und y.
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
@@ -220,12 +175,7 @@ def pred_accident_severity_svm(df_unfallatlas, adjusted_score, undersampling):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10)
 
     # Undersampling.
-    if undersampling == 'random':
-        rus = RandomUnderSampler(random_state=0)
-        X_train, y_train = rus.fit_resample(X_train, y_train)
-    elif undersampling == 'nearmiss':
-        nearmiss = NearMiss(version=1)
-        X_train, y_train = nearmiss.fit_resample(X_train, y_train)
+    X_train, y_train = undersampling(X_train, y_train, undersampling_mode)
 
     # Training der Daten.
     svm_model = svm.SVC(kernel='linear').fit(X_train, y_train)
@@ -245,7 +195,7 @@ def pred_accident_severity_svm(df_unfallatlas, adjusted_score, undersampling):
 
     return svm_model
 
-def pred_accident_severity_nearest_neighbors(df_unfallatlas, adjusted_score, undersampling):
+def pred_accident_severity_nearest_neighbors(df_unfallatlas, adjusted_score, undersampling_mode):
 
     #Definition von X und y.
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
