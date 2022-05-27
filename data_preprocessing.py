@@ -112,8 +112,8 @@ def pred_IstGkfz(df_unfallatlas):
 
     # Ergänzung der fehlenden IstGkfz-Werte im DataFrame df_unfallatlas.
     df_unfallatlas['IstGkfz'] = df_unfallatlas['IstGkfz'].fillna(df_IstGkfz_2017[0])
-    #df_unfallatlas.loc[df_unfallatlas.IstSonstige == 0, 'IstGkfz'] = 0
     df_unfallatlas.loc[(df_unfallatlas['UJAHR'] == 2017) & (df_unfallatlas['IstSonstige'] == 1) & (df_unfallatlas['IstGkfz'] == 1), 'IstSonstige'] = 0
+    df_unfallatlas[['ULICHTVERH', 'STRZUSTAND', 'IstGkfz', 'IstSonstige']] = df_unfallatlas[['ULICHTVERH', 'STRZUSTAND', 'IstGkfz', 'IstSonstige']].astype('int64')
 
     return df_unfallatlas
 
