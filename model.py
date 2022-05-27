@@ -80,7 +80,7 @@ def visualization_ts(df_number_of_accidents, prediction):
 
     #Darstellung der TimeSeries.
     fig, ax = plt.subplots(figsize  = (15, 10))
-    sns.lineplot(data = df_number_of_accidents['Count'])
+    sns.lineplot(data = df_number_of_accidents['Number of Accidents'])
     sns.lineplot(data = prediction.predicted_mean)
     pred_ci = prediction.conf_int(0.1)
     ax.fill_between(pred_ci.index,
@@ -101,7 +101,7 @@ def visualization_ts(df_number_of_accidents, prediction):
 #Vorhersage der schwere des Unfalls.____________________________________________________________________________________
 
 #DecisionTree mit RandomUndersampling und ohne Klassengewichte als Baseline Modell.
-def pred_accident_severity_decision_tree(df_unfallatlas, adjusted_score, undersampling_mode):
+def pred_accident_severity_decision_tree(df_unfallatlas, undersampling_mode):
 
     #Definition von X und y.
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
@@ -121,17 +121,13 @@ def pred_accident_severity_decision_tree(df_unfallatlas, adjusted_score, undersa
     results = pd.DataFrame(decision_tree_model.predict(X_test), index = X_test.index)
     results['y_test'] = y_test
 
-    # Bereinigter Score. Dafür wurden alle Zeilen mit der Unfallkategorie entfernt.
-    if adjusted_score:
-        results = results.drop(results[results.y_test == 3].index)
-
     #Überprüfung der Genauigkeit des Modells.
     score = accuracy_score(results['y_test'], results[0])
     clf_report = classification_report(results['y_test'], results[0])
 
     return decision_tree_model
 
-def pred_accident_severity_random_forest(df_unfallatlas, adjusted_score, undersampling_mode):
+def pred_accident_severity_random_forest(df_unfallatlas, undersampling_mode):
 
     #Definition von X und y.
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
@@ -151,17 +147,13 @@ def pred_accident_severity_random_forest(df_unfallatlas, adjusted_score, undersa
     results = pd.DataFrame(random_forest_model.predict(X_test), index = X_test.index)
     results['y_test'] = y_test
 
-    # Bereinigter Score. Dafür wurden alle Zeilen mit der Unfallkategorie entfernt.
-    if adjusted_score:
-        results = results.drop(results[results.y_test == 3].index)
-
     #Überprüfung der Genauigkeit des Modells.
     score = accuracy_score(results['y_test'], results[0])
     clf_report = classification_report(results['y_test'], results[0])
 
     return random_forest_model
 
-def pred_accident_severity_gaussian_nb(df_unfallatlas, adjusted_score, undersampling_mode):
+def pred_accident_severity_gaussian_nb(df_unfallatlas, undersampling_mode):
 
     #Definition von X und y.
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
@@ -181,17 +173,13 @@ def pred_accident_severity_gaussian_nb(df_unfallatlas, adjusted_score, undersamp
     results = pd.DataFrame(gaussian_nb_model.predict(X_test), index = X_test.index)
     results['y_test'] = y_test
 
-    # Bereinigter Score. Dafür wurden alle Zeilen mit der Unfallkategorie entfernt.
-    if adjusted_score:
-        results = results.drop(results[results.y_test == 3].index)
-
     #Überprüfung der Genauigkeit des Modells.
     score = accuracy_score(results['y_test'], results[0])
     clf_report = classification_report(results['y_test'], results[0])
 
     return gaussian_nb_model
 
-def pred_accident_severity_svm(df_unfallatlas, adjusted_score, undersampling_mode):
+def pred_accident_severity_svm(df_unfallatlas, undersampling_mode):
 
     # Definition von X und y.
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
@@ -215,17 +203,13 @@ def pred_accident_severity_svm(df_unfallatlas, adjusted_score, undersampling_mod
     results = pd.DataFrame(svm_model.predict(X_test), index=X_test.index)
     results['y_test'] = y_test
 
-    # Bereinigter Score. Dafür wurden alle Zeilen mit der Unfallkategorie entfernt.
-    if adjusted_score:
-        results = results.drop(results[results.y_test == 3].index)
-
     # Überprüfung der Genauigkeit des Modells.
     score = accuracy_score(results['y_test'], results[0])
     clf_report = classification_report(results['y_test'], results[0])
 
     return svm_model
 
-def pred_accident_severity_nearest_neighbors(df_unfallatlas, adjusted_score, undersampling_mode):
+def pred_accident_severity_nearest_neighbors(df_unfallatlas, undersampling_mode):
 
     #Definition von X und y.
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
@@ -244,10 +228,6 @@ def pred_accident_severity_nearest_neighbors(df_unfallatlas, adjusted_score, und
     #Validierung des Modells.
     results = pd.DataFrame(knn_model.predict(X_test), index = X_test.index)
     results['y_test'] = y_test
-
-    #Bereinigter Score. Dafür wurden alle Zeilen mit der Unfallkategorie entfernt.
-    if adjusted_score:
-        results = results.drop(results[results.y_test == 3].index)
 
     #Überprüfung der Genauigkeit des Modells.
     score = accuracy_score(results['y_test'], results[0])

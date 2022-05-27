@@ -139,22 +139,22 @@ def prepare_number_of_accidents(df_unfallatlas, ags, wheater_data_munich, visual
 
     #Index to datetime. Allerdings Problem wegen des Tages. Dieser ist ja nicht angegeben. Habe für Testzwecke mal den Wochentag genommen.
     df_number_of_accidents = df_unfallatlas[(df_unfallatlas['AGS'] == ags)].reset_index(drop = True)
-    df_number_of_accidents.rename(columns={'UJAHR': 'year', 'UMONAT': 'month', 'UWOCHENTAG': 'day', 'UKATEGORIE': 'Count'},inplace=True)
-    df_number_of_accidents = pd.DataFrame(df_number_of_accidents.set_index(pd.to_datetime(df_number_of_accidents[['year', 'month', 'day']])).resample('M')['Count'].count())
+    df_number_of_accidents.rename(columns={'UJAHR': 'year', 'UMONAT': 'month', 'UWOCHENTAG': 'day', 'UKATEGORIE': 'Number of Accidents'},inplace=True)
+    df_number_of_accidents = pd.DataFrame(df_number_of_accidents.set_index(pd.to_datetime(df_number_of_accidents[['year', 'month', 'day']])).resample('M')['Number of Accidents'].count())
     df_number_of_accidents.index = df_number_of_accidents.index.map(lambda t: t.replace(day = 1))
     df_number_of_accidents.index.freq = 'MS'
 
     #Plot Dekomposition.
     if visualization_mode:
         rcParams['figure.figsize'] = 15, 10
-        decomposition = sm.tsa.seasonal_decompose(df_number_of_accidents['Count'], model = 'additive')
+        decomposition = sm.tsa.seasonal_decompose(df_number_of_accidents['Number of Accidents'], model = 'additive')
         fig = decomposition.plot()
         plt.show()
 
         #Plot ACF und PACF.
-        plot_acf(df_number_of_accidents['Count'])
+        plot_acf(df_number_of_accidents['Number of Accidents'])
         matplotlib.pyplot.show()
-        plot_pacf(df_number_of_accidents['Count'], method='ywm')
+        plot_pacf(df_number_of_accidents['Number of Accidents'], method='ywm')
         matplotlib.pyplot.show()
 
     #Sind die Daten stationär?

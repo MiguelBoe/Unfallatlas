@@ -18,7 +18,6 @@ model_features = ['Temperatur Mittelwert', 'Niederschlagmenge in Summe Liter pro
 visualization_mode = False
 model_accident_severity = 'decision_tree_model' #decision_tree_model, random_forest_model, gaussian_nb_model, svm_model, knn_model
 undersampling_mode = 'random' #random, nearmiss, False
-adjusted_score = False
 
 #Exogene Daten
 wheater_data_munich = pd.read_csv('data/exog_data/Wetterdaten_München.csv', sep =';')
@@ -64,15 +63,15 @@ if tool == 0:
         model = joblib.load(f'models/{model_accident_severity}.sav')
     except:
         if model_accident_severity == 'knn_model':
-            model = pred_accident_severity_nearest_neighbors(df_unfallatlas, adjusted_score, undersampling_mode)
+            model = pred_accident_severity_nearest_neighbors(df_unfallatlas, undersampling_mode)
         elif model_accident_severity == 'decision_tree_model':
-            model = pred_accident_severity_decision_tree(df_unfallatlas, adjusted_score, undersampling_mode)
+            model = pred_accident_severity_decision_tree(df_unfallatlas, undersampling_mode)
         elif model_accident_severity == 'random_forest_model':
-            model = pred_accident_severity_random_forest(df_unfallatlas, adjusted_score, undersampling_mode)
+            model = pred_accident_severity_random_forest(df_unfallatlas, undersampling_mode)
         elif model_accident_severity == 'gaussian_nb_model':
-            model = pred_accident_severity_gaussian_nb(df_unfallatlas, adjusted_score, undersampling_mode)
+            model = pred_accident_severity_gaussian_nb(df_unfallatlas, undersampling_mode)
         elif model_accident_severity == 'svm_model':
-            model = pred_accident_severity_svm(df_unfallatlas, adjusted_score, undersampling_mode)
+            model = pred_accident_severity_svm(df_unfallatlas, undersampling_mode)
 
     #Abfrage der Unfalldaten.
     prediction = query()
@@ -117,18 +116,18 @@ elif tool == 1:
 
     #Erstellung des Modells mit vorheriger Grid Search zur Definition der besten Parameter für das Modell.
     df_number_of_accidents, wheater_data_munich_2021 = prepare_number_of_accidents(df_unfallatlas, ags, wheater_data_munich, visualization_mode)
-    bestAIC, bestParam, bestSParam = grid_search(y = df_number_of_accidents['Count'], x = df_number_of_accidents[model_features])
-    sarima = sarima(bestParam, bestSParam, visualization_mode, y = df_number_of_accidents['Count'], x = df_number_of_accidents[model_features])
+    bestAIC, bestParam, bestSParam = grid_search(y = df_number_of_accidents['Number of Accidents'], x = df_number_of_accidents[model_features])
+    sarima = sarima(bestParam, bestSParam, visualization_mode, y = df_number_of_accidents['Number of Accidents'], x = df_number_of_accidents[model_features])
 
     #Vorhersage der Anzahl der Unfälle für das Jahr 2021.
     pred_start, pred_end = str(np.min(df_number_of_accidents.index) + relativedelta(months = 48)), str(np.max(df_number_of_accidents.index) + relativedelta(months=12))
     prediction = sarima.get_prediction(pred_start, pred_end, exog=wheater_data_munich_2021[model_features])
-    df_number_of_accidents = pd.concat([df_number_of_accidents['Count'], round(prediction.predicted_mean.last('12M'))])
-    df_number_of_accidents = pd.DataFrame(df_number_of_accidents).rename(columns = {0: 'Count'})
+    df_number_of_accidents = pd.concat([df_number_of_accidents['Number of Accidents'], round(prediction.predicted_mean.last('12M'))])
+    df_number_of_accidents = pd.DataFrame(df_number_of_accidents).rename(columns = {0: 'Number of Accidents'})
 
     #Validierung des SARIMAX Modells anhand des MSE und MAE bezogen auf das Jahr 2020. Vergleich der Scores mit dem Modell ohne exogene Variablen.
-    mse_value = round(mean_squared_error(df_number_of_accidents['Count'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
-    mae_value = round(mean_absolute_error(df_number_of_accidents['Count'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
+    mse_value = round(mean_squared_error(df_number_of_accidents['Number of Accidents'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
+    mae_value = round(mean_absolute_error(df_number_of_accidents['Number of Accidents'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
 
     print('\nVorhersage der Unfallzahlen auf Monatsbasis:')
     print(round(prediction.predicted_mean.last('12M')))
