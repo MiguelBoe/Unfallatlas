@@ -110,6 +110,8 @@ def baseline_model(df_unfallatlas):
 
     # Splitten der Daten in Test- und Training-Set.
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10)
+
+    # Vorbereitung der Daten.
     X_test = X_test.reset_index(drop=True)
     y_test = y_test.reset_index(drop=True)
     prediction = pd.Series()

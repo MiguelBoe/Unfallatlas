@@ -3,7 +3,7 @@ import datetime
 from imblearn.under_sampling import RandomUnderSampler, NearMiss
 
 #Übersichtlichere Daten.
-tools = {0: 'Vorhersage der Schwere eines Unfalls.', 1: 'Vorhersage der Anzahl der Unfälle für das Jahr 2021.'}
+tools = {0: 'Vorhersage der Unfallkategorie.', 1: 'Vorhersage der Anzahl der Unfälle für das Jahr 2021.'}
 
 monate = {
         1: 'Januar', 2: 'Februar', 3: 'März', 4: 'April', 5: 'Mai',
@@ -109,7 +109,7 @@ def query():
     print(message, '\n')
     IstSonstige = query_exception(dict = jaodernein, message = message)
 
-    print('\n################################################')
+    print('\n###################################################')
     print('Zeitpunkt des Unfalls in München:')
     print('Unfallmonat:\t\t', monate[UMONAT])
     print('Unfallstunde:\t\t', USTUNDE, 'Uhr')

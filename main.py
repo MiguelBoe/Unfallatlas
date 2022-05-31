@@ -16,7 +16,7 @@ selection = None
 ags = '09162000'
 model_features = ['Temperatur Mittelwert', 'Niederschlagmenge in Summe Liter pro qm', 'Sonnenscheindauer in Summe in Stunden']
 visualization_mode = False
-model_accident_severity = 'decision_tree_model' #decision_tree_model, random_forest_model, gaussian_nb_model, svm_model, knn_model
+model_accident_severity = 'random_forest_model' #decision_tree_model, random_forest_model, gaussian_nb_model, svm_model, knn_model
 undersampling_mode = 'random' #random, nearmiss, False
 
 #Exogene Daten
@@ -58,7 +58,8 @@ if tool == 0:
     print('#####################################\n')
     print('Erstellung des Modells ...\n')
 
-    baseline_clf_report = baseline_model(df_unfallatlas)
+    #Validierung des Baseline Modells.
+    #baseline_clf_report = baseline_model(df_unfallatlas)
 
     #Laden des Modells.
     try:
@@ -78,10 +79,6 @@ if tool == 0:
     #Abfrage der Unfalldaten.
     prediction = query()
 
-    '''
-    Bestimmung des Modus der Zielvariable UKATEGORIE anhand der Eingabeparameter. Wenn es keine Unfälle zu diesen
-    Parametern gibt, wird die schwere des Unfalls mit dem Modell (kNN) bestimmt.
-    '''
     try:
         # Bestimmung der Unfallkategorie.
         accident_severity = statistical_determination_accident_severity(df_unfallatlas, prediction)
@@ -94,14 +91,14 @@ if tool == 0:
 
         #Ausgabe der Wahrscheinlichkeit der Unfallkategorien.
         if accident_severity[0] != 0:
-            print('\nWahrscheinlichkeit der Schwere des Unfalls:')
+            print('\nHistorische Wahrscheinlichkeit der Unfallkategorie:')
 
         for probability in accident_severity_probability:
             print(f'{kategorien[accident_severity_probability[accident_severity_probability == probability].index[0]]}\t', probability, '%')
 
         # Ausgabe der vorhergesagten Unfallkategorie.
         print('\nUnfallkategorie:\t', kategorien[accident_severity[0]])
-        print('################################################\n')
+        print('###################################################\n')
 
     except:
         # Bestimmung der Unfallkategorie.
