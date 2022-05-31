@@ -101,7 +101,7 @@ def visualization_ts(df_number_of_accidents, prediction):
 
 #Vorhersage der schwere des Unfalls.____________________________________________________________________________________
 
-#Statistisches Mehrheitsverfahren ohne Undersampling als Baseline Modell.
+#Naives statistisches Mehrheitsverfahren ohne Undersampling als Baseline Modell.
 def baseline_model(df_unfallatlas):
 
     # Definition von X und y.
