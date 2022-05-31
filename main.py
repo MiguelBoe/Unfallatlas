@@ -58,6 +58,8 @@ if tool == 0:
     print('#####################################\n')
     print('Erstellung des Modells ...\n')
 
+    baseline_clf_report = baseline_model(df_unfallatlas)
+
     #Laden des Modells.
     try:
         model = joblib.load(f'models/{model_accident_severity}.sav')
@@ -87,8 +89,8 @@ if tool == 0:
         # Berechnung der Wahrscheinlichkeit der Unfallkategorie.
         accident_severity_probability = round(accident_severity.groupby('UKATEGORIE').size().div(len(accident_severity))*100, 2)
 
-        #Bestimmung der Unfallkategorie mit der höchsten Wahrscheinlichkeit.
-        accident_severity = accident_severity['UKATEGORIE'].mode()
+        #Bestimmung der Unfallkategorie.
+        accident_severity = model.predict(prediction)
 
         #Ausgabe der Wahrscheinlichkeit der Unfallkategorien.
         if accident_severity[0] != 0:

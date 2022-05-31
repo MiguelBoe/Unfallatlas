@@ -20,6 +20,7 @@ from utils import undersampling
 import joblib
 
 warnings.simplefilter('ignore', ConvergenceWarning)
+warnings.simplefilter('ignore', FutureWarning)
 
 #SARIMA.________________________________________________________________________________________________________________
 
@@ -100,7 +101,61 @@ def visualization_ts(df_number_of_accidents, prediction):
 
 #Vorhersage der schwere des Unfalls.____________________________________________________________________________________
 
-#DecisionTree mit RandomUndersampling und ohne Klassengewichte als Baseline Modell.
+#Statistisches Mehrheitsverfahren ohne Undersampling als Baseline Modell.
+def baseline_model(df_unfallatlas):
+
+    # Definition von X und y.
+    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
+    y = df_unfallatlas['UKATEGORIE']
+
+    # Splitten der Daten in Test- und Training-Set.
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10)
+    X_test = X_test.reset_index(drop=True)
+    y_test = y_test.reset_index(drop=True)
+    prediction = pd.Series()
+
+    for row in range(0,len(X_test)):
+
+        accident_severity = df_unfallatlas[(df_unfallatlas['UMONAT'] == X_test['UMONAT'].iloc[row]) &
+              (df_unfallatlas['USTUNDE'] == X_test['USTUNDE'].iloc[row]) &
+              (df_unfallatlas['UWOCHENTAG'] == X_test['UWOCHENTAG'].iloc[row]) &
+              (df_unfallatlas['UART'] == X_test['UART'].iloc[row]) &
+              (df_unfallatlas['IstRad'] == X_test['IstRad'].iloc[row]) &
+              (df_unfallatlas['IstPKW'] == X_test['IstPKW'].iloc[row]) &
+              (df_unfallatlas['IstFuss'] == X_test['IstFuss'].iloc[row]) &
+              (df_unfallatlas['IstKrad'] == X_test['IstKrad'].iloc[row]) &
+              (df_unfallatlas['IstGkfz'] == X_test['IstGkfz'].iloc[row]) &
+              (df_unfallatlas['IstSonstige'] == X_test['IstSonstige'].iloc[row])]
+
+        # Bestimmung der Unfallkategorie mit der höchsten Wahrscheinlichkeit.
+        print(f'Prediction {row}' + f'/{len(X_test)-1}:', accident_severity['UKATEGORIE'].mode()[0])
+        prediction = prediction.append(pd.Series(accident_severity['UKATEGORIE'].mode()[0]))
+
+    # Erstellung des DataFrames mit den Ergebnissen der Prognose im Vergleich zu y_test.
+    prediction = prediction.reset_index(drop=True)
+    results = pd.DataFrame({'prediction':prediction, 'y_test': y_test})
+
+    # Überprüfung der Genauigkeit des Modells.
+    score = accuracy_score(results['y_test'], results['prediction'])
+    baseline_clf_report = classification_report(results['y_test'], results['prediction'])
+
+    return baseline_clf_report
+
+def statistical_determination_accident_severity(df_unfallatlas, prediction):
+
+    accident_severity = df_unfallatlas[(df_unfallatlas['UMONAT'] == prediction['UMONAT'][0]) &
+          (df_unfallatlas['USTUNDE'] == prediction['USTUNDE'][0]) &
+          (df_unfallatlas['UWOCHENTAG'] == prediction['UWOCHENTAG'][0]) &
+          (df_unfallatlas['UART'] == prediction['UART'][0]) &
+          (df_unfallatlas['IstRad'] == prediction['IstRad'][0]) &
+          (df_unfallatlas['IstPKW'] == prediction['IstPKW'][0]) &
+          (df_unfallatlas['IstFuss'] == prediction['IstFuss'][0]) &
+          (df_unfallatlas['IstKrad'] == prediction['IstKrad'][0]) &
+          (df_unfallatlas['IstGkfz'] == prediction['IstGkfz'][0]) &
+          (df_unfallatlas['IstSonstige'] == prediction['IstSonstige'][0])]
+
+    return accident_severity
+
 def pred_accident_severity_decision_tree(df_unfallatlas, undersampling_mode):
 
     #Definition von X und y.
@@ -234,18 +289,3 @@ def pred_accident_severity_nearest_neighbors(df_unfallatlas, undersampling_mode)
     clf_report = classification_report(results['y_test'], results[0])
 
     return knn_model
-
-def statistical_determination_accident_severity(df_unfallatlas, prediction):
-
-    accident_severity = df_unfallatlas[(df_unfallatlas['UMONAT'] == prediction['UMONAT'][0]) &
-          (df_unfallatlas['USTUNDE'] == prediction['USTUNDE'][0]) &
-          (df_unfallatlas['UWOCHENTAG'] == prediction['UWOCHENTAG'][0]) &
-          (df_unfallatlas['UART'] == prediction['UART'][0]) &
-          (df_unfallatlas['IstRad'] == prediction['IstRad'][0]) &
-          (df_unfallatlas['IstPKW'] == prediction['IstPKW'][0]) &
-          (df_unfallatlas['IstFuss'] == prediction['IstFuss'][0]) &
-          (df_unfallatlas['IstKrad'] == prediction['IstKrad'][0]) &
-          (df_unfallatlas['IstGkfz'] == prediction['IstGkfz'][0]) &
-          (df_unfallatlas['IstSonstige'] == prediction['IstSonstige'][0])]
-
-    return accident_severity
