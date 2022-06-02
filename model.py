@@ -223,7 +223,7 @@ def pred_accident_severity_gaussian_nb(df_unfallatlas, undersampling_mode):
     X_train, y_train = undersampling(X_train, y_train, undersampling_mode)
 
     #Training der Daten.
-    gaussian_nb_model = GaussianNB(class_weight={1:0.40, 2:0.40, 3:0.20}).fit(X_train, y_train)
+    gaussian_nb_model = GaussianNB().fit(X_train, y_train)
     joblib.dump(gaussian_nb_model, 'models/gaussian_nb_model.sav')
 
     #Validierung des Modells.
