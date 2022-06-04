@@ -1,6 +1,13 @@
 import pandas as pd
 import datetime
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 from imblearn.under_sampling import RandomUnderSampler, NearMiss
+
+
+#Für Abfrage-Funktion.__________________________________________________________________________________________________
 
 #Übersichtlichere Daten.
 tools = {0: 'Vorhersage der Unfallkategorie.', 1: 'Vorhersage der Anzahl der Unfälle für das Jahr 2021.'}
@@ -134,6 +141,52 @@ def query():
 
     return prediction
 
+
+#Für Vorhersage der schwere des Unfalls.________________________________________________________________________________
+
+def visualization_ts(df_number_of_accidents, prediction):
+
+    #Darstellung der TimeSeries.
+    fig, ax = plt.subplots(figsize  = (15, 10))
+    sns.lineplot(data = df_number_of_accidents['Number of Accidents'])
+    sns.lineplot(data = prediction.predicted_mean)
+    pred_ci = prediction.conf_int(0.1)
+    ax.fill_between(pred_ci.index,
+                    pred_ci.iloc[:, 0],
+                    pred_ci.iloc[:, 1], color='k', alpha=0.1)
+    plt.title('Vorhersage der Anzahl der Unfälle', fontsize = 30, pad = 20)
+    plt.ylabel('Anzahl der Unfälle', fontsize = 25)
+    plt.legend(fontsize = 15, labels = ['Historische Werte', 'Vorhersage', 'Konfidenzintervall'], loc='upper left')
+    ax.tick_params(axis = 'x', labelsize = 20)
+    ax.tick_params(axis = 'y', labelsize = 20)
+    plt.show()
+
+    print('\n############################################################################################')
+    print('In der obenstehenden Tabelle ist die prognostizierte Anzahl der Unfälle pro Monat angezeigt.')
+    print('       In dem Plot ist die Prognose der Unfallzahlen für das Jahr 2021 dargestellt.')
+    print('############################################################################################\n')
+
+
+#Für Vorhersage der Unfallkategorie.____________________________________________________________________________________
+
+def train_test_divid(df_unfallatlas, undersampling_mode):
+
+    # Definition von X und y.
+    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
+    y = df_unfallatlas['UKATEGORIE']
+
+    # Skalierung der Attribute, für bessere Performance.
+    scaler = StandardScaler().fit(X)
+    X = pd.DataFrame(scaler.transform(X))
+
+    # Splitten der Daten in Test- und Training-Set.
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10)
+
+    # Undersampling.
+    X_train, y_train = undersampling(X_train, y_train, undersampling_mode)
+
+    return X_train, X_test, y_train, y_test
+
 def undersampling(X_train, y_train, undersampling_mode):
 
     # Undersampling.
@@ -141,7 +194,7 @@ def undersampling(X_train, y_train, undersampling_mode):
         rus = RandomUnderSampler(random_state=0)
         X_train, y_train = rus.fit_resample(X_train, y_train)
     elif undersampling_mode == 'nearmiss':
-        nearmiss = NearMiss(version=1)
+        nearmiss = NearMiss(version=3)
         X_train, y_train = nearmiss.fit_resample(X_train, y_train)
 
     return X_train, y_train

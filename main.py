@@ -8,7 +8,7 @@ import webbrowser
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz, get_wheater_data, prepare_number_of_accidents, add_exog_data
-from utils import query_exception, query, kategorien, tools, monate_map, arten
+from utils import *
 from model import *
 
 #Parameter

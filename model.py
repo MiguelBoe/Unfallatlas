@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -14,13 +12,12 @@ import itertools
 import statsmodels.api as sm
 import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
-from sklearn.model_selection import GridSearchCV
-from sklearn.preprocessing import StandardScaler
-from utils import undersampling
+from utils import undersampling, train_test_divid
 import joblib
 
 warnings.simplefilter('ignore', ConvergenceWarning)
 warnings.simplefilter('ignore', FutureWarning)
+
 
 #SARIMA.________________________________________________________________________________________________________________
 
@@ -77,29 +74,8 @@ def sarima(bestParam, bestSParam, visualization_mode, y, x):
 
     return sarima
 
-def visualization_ts(df_number_of_accidents, prediction):
 
-    #Darstellung der TimeSeries.
-    fig, ax = plt.subplots(figsize  = (15, 10))
-    sns.lineplot(data = df_number_of_accidents['Number of Accidents'])
-    sns.lineplot(data = prediction.predicted_mean)
-    pred_ci = prediction.conf_int(0.1)
-    ax.fill_between(pred_ci.index,
-                    pred_ci.iloc[:, 0],
-                    pred_ci.iloc[:, 1], color='k', alpha=0.1)
-    plt.title('Vorhersage der Anzahl der Unfälle', fontsize = 30, pad = 20)
-    plt.ylabel('Anzahl der Unfälle', fontsize = 25)
-    plt.legend(fontsize = 15, labels = ['Historische Werte', 'Vorhersage', 'Konfidenzintervall'], loc='upper left')
-    ax.tick_params(axis = 'x', labelsize = 20)
-    ax.tick_params(axis = 'y', labelsize = 20)
-    plt.show()
-
-    print('\n############################################################################################')
-    print('In der obenstehenden Tabelle ist die prognostizierte Anzahl der Unfälle pro Monat angezeigt.')
-    print('       In dem Plot ist die Prognose der Unfallzahlen für das Jahr 2021 dargestellt.')
-    print('############################################################################################\n')
-
-#Vorhersage der schwere des Unfalls.____________________________________________________________________________________
+#Vorhersage der Unfallkategorie.________________________________________________________________________________________
 
 #Naives statistisches Mehrheitsverfahren ohne Undersampling als Baseline Modell.
 def baseline_model(df_unfallatlas):
@@ -160,19 +136,12 @@ def statistical_determination_accident_severity(df_unfallatlas, prediction):
 
 def pred_accident_severity_decision_tree(df_unfallatlas, undersampling_mode):
 
-    #Definition von X und y.
-    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
-    y = df_unfallatlas['UKATEGORIE']
-
     #Splitten der Daten in Test- und Training-Set.
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
-
-    # Undersampling.
-    X_train, y_train = undersampling(X_train, y_train, undersampling_mode)
+    X_train, X_test, y_train, y_test = train_test_divid(df_unfallatlas, undersampling_mode)
 
     #Training der Daten.
     decision_tree_model = DecisionTreeClassifier(max_depth = 10, class_weight={1:0.40, 2:0.40, 3:0.20}).fit(X_train, y_train)
-    joblib.dump(decision_tree_model, 'models/decision_tree_model.sav')
+    #joblib.dump(decision_tree_model, 'models/decision_tree_model.sav')
 
     #Validierung des Modells.
     results = pd.DataFrame(decision_tree_model.predict(X_test), index = X_test.index)
@@ -186,19 +155,12 @@ def pred_accident_severity_decision_tree(df_unfallatlas, undersampling_mode):
 
 def pred_accident_severity_random_forest(df_unfallatlas, undersampling_mode):
 
-    #Definition von X und y.
-    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
-    y = df_unfallatlas['UKATEGORIE']
-
     #Splitten der Daten in Test- und Training-Set.
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
-
-    # Undersampling.
-    X_train, y_train = undersampling(X_train, y_train, undersampling_mode)
+    X_train, X_test, y_train, y_test = train_test_divid(df_unfallatlas, undersampling_mode)
 
     #Training der Daten.
     random_forest_model = RandomForestClassifier(max_depth = 10, class_weight={1:0.40, 2:0.40, 3:0.20}).fit(X_train, y_train)
-    joblib.dump(random_forest_model, 'models/random_forest_model.sav')
+    #joblib.dump(random_forest_model, 'models/random_forest_model.sav')
 
     #Validierung des Modells.
     results = pd.DataFrame(random_forest_model.predict(X_test), index = X_test.index)
@@ -212,15 +174,8 @@ def pred_accident_severity_random_forest(df_unfallatlas, undersampling_mode):
 
 def pred_accident_severity_gaussian_nb(df_unfallatlas, undersampling_mode):
 
-    #Definition von X und y.
-    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
-    y = df_unfallatlas['UKATEGORIE']
-
     #Splitten der Daten in Test- und Training-Set.
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
-
-    # Undersampling.
-    X_train, y_train = undersampling(X_train, y_train, undersampling_mode)
+    X_train, X_test, y_train, y_test = train_test_divid(df_unfallatlas, undersampling_mode)
 
     #Training der Daten.
     gaussian_nb_model = GaussianNB().fit(X_train, y_train)
@@ -238,9 +193,8 @@ def pred_accident_severity_gaussian_nb(df_unfallatlas, undersampling_mode):
 
 def pred_accident_severity_svm(df_unfallatlas, undersampling_mode):
 
-    # Definition von X und y.
-    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
-    y = df_unfallatlas['UKATEGORIE']
+    # Splitten der Daten in Test- und Training-Set.
+    X_train, X_test, y_train, y_test = train_test_divid(df_unfallatlas, undersampling_mode)
 
     # Skalierung der Attribute, für bessere Performance.
     scaler = StandardScaler().fit(X)
@@ -268,15 +222,8 @@ def pred_accident_severity_svm(df_unfallatlas, undersampling_mode):
 
 def pred_accident_severity_nearest_neighbors(df_unfallatlas, undersampling_mode):
 
-    #Definition von X und y.
-    X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
-    y = df_unfallatlas['UKATEGORIE']
-
-    #Splitten der Daten in Test- und Training-Set.
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.10)
-
-    # Undersampling.
-    X_train, y_train = undersampling(X_train, y_train, undersampling_mode)
+    # Splitten der Daten in Test- und Training-Set.
+    X_train, X_test, y_train, y_test = train_test_divid(df_unfallatlas, undersampling_mode)
 
     #Training der Daten.
     knn_model = KNeighborsClassifier(n_neighbors = 3).fit(X_train, y_train)
