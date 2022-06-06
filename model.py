@@ -141,7 +141,7 @@ def pred_accident_severity_decision_tree(df_unfallatlas, undersampling_mode):
 
     #Training der Daten.
     decision_tree_model = DecisionTreeClassifier(max_depth = 10, class_weight={1:0.40, 2:0.40, 3:0.20}).fit(X_train, y_train)
-    #joblib.dump(decision_tree_model, 'models/decision_tree_model.sav')
+    joblib.dump(decision_tree_model, 'models/decision_tree_model.sav')
 
     #Validierung des Modells.
     results = pd.DataFrame(decision_tree_model.predict(X_test), index = X_test.index)

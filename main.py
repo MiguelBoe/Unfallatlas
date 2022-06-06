@@ -7,6 +7,7 @@ from folium import plugins
 import webbrowser
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_percentage_error
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz, get_wheater_data, prepare_number_of_accidents, add_exog_data
 from utils import *
 from model import *
@@ -127,6 +128,7 @@ elif tool == 1:
     #Validierung des SARIMAX Modells anhand des MSE und MAE bezogen auf das Jahr 2020. Vergleich der Scores mit dem Modell ohne exogene Variablen.
     mse_value = round(mean_squared_error(df_number_of_accidents['Number of Accidents'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
     mae_value = round(mean_absolute_error(df_number_of_accidents['Number of Accidents'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
+    mape_value = round(mean_absolute_percentage_error(df_number_of_accidents['Number of Accidents'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
 
     print('\nVorhersage der Unfallzahlen auf Monatsbasis:')
     print(round(prediction.predicted_mean.last('12M')))
