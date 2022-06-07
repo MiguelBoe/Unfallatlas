@@ -156,7 +156,7 @@ def visualization_ts(df_number_of_accidents, prediction):
                     pred_ci.iloc[:, 1], color='k', alpha=0.1)
     plt.title('Vorhersage der Anzahl der Unfälle', fontsize = 30, pad = 20)
     plt.ylabel('Anzahl der Unfälle', fontsize = 25)
-    plt.legend(fontsize = 15, labels = ['Historische Werte', 'Vorhersage', 'Konfidenzintervall'], loc='upper left')
+    plt.legend(fontsize = 15, labels = ['Historische Werte', 'Vorhersage', 'Konfidenzband'], loc='upper left')
     ax.tick_params(axis = 'x', labelsize = 20)
     ax.tick_params(axis = 'y', labelsize = 20)
     plt.show()

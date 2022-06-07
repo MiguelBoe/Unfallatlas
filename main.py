@@ -91,7 +91,7 @@ if tool == 0:
         accident_severity = model.predict(prediction)
 
         #Ausgabe der Wahrscheinlichkeit der Unfallkategorien.
-        if accident_severity[0] != 0:
+        if len(accident_severity_probability) != 0:
             print('\nHistorische Wahrscheinlichkeit der Unfallkategorie:')
 
         for probability in accident_severity_probability:

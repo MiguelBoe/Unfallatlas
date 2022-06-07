@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn import svm
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 import itertools
@@ -17,6 +18,7 @@ import joblib
 
 warnings.simplefilter('ignore', ConvergenceWarning)
 warnings.simplefilter('ignore', FutureWarning)
+warnings.simplefilter("ignore", UserWarning)
 
 
 #SARIMA.________________________________________________________________________________________________________________
@@ -140,7 +142,7 @@ def pred_accident_severity_decision_tree(df_unfallatlas, undersampling_mode):
     X_train, X_test, y_train, y_test = train_test_divid(df_unfallatlas, undersampling_mode)
 
     #Training der Daten.
-    decision_tree_model = DecisionTreeClassifier(max_depth = 10, class_weight={1:0.40, 2:0.40, 3:0.20}).fit(X_train, y_train)
+    decision_tree_model = DecisionTreeClassifier(max_depth = 10, class_weight={1:1.1, 2:1.2, 3:1}).fit(X_train, y_train)
     joblib.dump(decision_tree_model, 'models/decision_tree_model.sav')
 
     #Validierung des Modells.
@@ -159,8 +161,8 @@ def pred_accident_severity_random_forest(df_unfallatlas, undersampling_mode):
     X_train, X_test, y_train, y_test = train_test_divid(df_unfallatlas, undersampling_mode)
 
     #Training der Daten.
-    random_forest_model = RandomForestClassifier(max_depth = 10, class_weight={1:0.40, 2:0.40, 3:0.20}).fit(X_train, y_train)
-    #joblib.dump(random_forest_model, 'models/random_forest_model.sav')
+    random_forest_model = RandomForestClassifier(max_depth = 10, class_weight={1:1.1, 2:1.2, 3:1}).fit(X_train, y_train)
+    joblib.dump(random_forest_model, 'models/random_forest_model.sav')
 
     #Validierung des Modells.
     results = pd.DataFrame(random_forest_model.predict(X_test), index = X_test.index)
@@ -196,18 +198,11 @@ def pred_accident_severity_svm(df_unfallatlas, undersampling_mode):
     # Splitten der Daten in Test- und Training-Set.
     X_train, X_test, y_train, y_test = train_test_divid(df_unfallatlas, undersampling_mode)
 
-    # Skalierung der Attribute, für bessere Performance.
-    scaler = StandardScaler().fit(X)
-    X = pd.DataFrame(scaler.transform(X))
-
-    # Splitten der Daten in Test- und Training-Set.
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10)
-
     # Undersampling.
     X_train, y_train = undersampling(X_train, y_train, undersampling_mode)
 
     # Training der Daten.
-    svm_model = svm.SVC(kernel='poly', class_weight={1:0.40, 2:0.40, 3:0.20}).fit(X_train, y_train)
+    svm_model = svm.SVC(kernel = 'rbf', decision_function_shape='ovr', class_weight={1:1.1, 2:1.2, 3:1}).fit(X_train, y_train)
     joblib.dump(svm_model, 'models/svm_model.sav')
 
     # Validierung des Modells.
