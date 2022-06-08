@@ -150,7 +150,7 @@ def visualization_ts(df_number_of_accidents, prediction):
     fig, ax = plt.subplots(figsize  = (15, 10))
     sns.lineplot(data = df_number_of_accidents['Number of Accidents'])
     sns.lineplot(data = prediction.predicted_mean)
-    pred_ci = prediction.conf_int(0.1)
+    pred_ci = prediction.conf_int(alpha=0.1)
     ax.fill_between(pred_ci.index,
                     pred_ci.iloc[:, 0],
                     pred_ci.iloc[:, 1], color='k', alpha=0.1)
