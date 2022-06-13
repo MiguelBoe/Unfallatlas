@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from data_preprocessing import get_data, preprocessing, pred_IstGkfz, prepare_number_of_accidents
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 #Begrüßung.
 print('\nWillkommen beim Data-Exploration Bereich des Accident Prediction Tools!')
@@ -25,23 +26,11 @@ print('\nAnalyse der Daten ...')
 #sns.set()
 plt.figure(figsize=(15, 10))
 plt.title('Korrelation der Attribute', fontsize=25, pad=20)
-sns.heatmap(df_unfallatlas.corr(), annot=True, robust=True, fmt='.3f')
+ax=sns.heatmap(df_unfallatlas.corr(), annot=True, robust=True, fmt='.3f')
+ax.figure.tight_layout()
 plt.show()
 
-# Darstellung der Wochentage mit den meisten Unfällen pro Jahr.
-weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
-accweekday = df_unfallatlas.groupby(['UJAHR', 'UWOCHENTAG']).size()
-accweekday = accweekday.rename_axis(['UJAHR', 'UWOCHENTAG']).unstack('UWOCHENTAG')
-accweekday.columns = weekdays
-
-plt.figure(figsize=(15, 10))
-sns.heatmap(accweekday, cmap='plasma_r')
-plt.title('Unfälle nach Wochentagen pro Jahr', fontsize=25, pad=20)
-plt.xticks(fontsize=15)
-plt.yticks(fontsize=15)
-plt.show()
-
-
+#Plot: Anzahl der Unfälle pro Vekehrsmittel in Bayern
 fahrzeuge_bayern = df_unfallatlas.loc[df_unfallatlas['ULAND'] == 9]
 fahrzeuge_bayern = pd.DataFrame(fahrzeuge_bayern[[ 'IstRad', 'IstPKW', 'IstKrad', 'IstGkfz','IstSonstige', 'IstFuss']].sum(axis=0)).sort_values(by=0)
 fahrzeuge_bayern = fahrzeuge_bayern.rename(columns={0:'Anzahl der Unfälle'})
@@ -54,11 +43,10 @@ ax.tick_params(axis='x', labelsize = 20)
 ax.tick_params(axis='y', labelsize = 20)
 plt.show()
 
-
+#Plot: Anzahl der Unfälle pro Bundesland
 bundesländer = ['SH', 'HH', 'NI', 'HB', 'NW',
                 'HE', 'RP', 'BW', 'BY',
                 'SL', 'BE','BB', 'MV', 'SN', 'ST', 'TH']
-
 
 unfälle_bundesland = df_unfallatlas.groupby(df_unfallatlas['ULAND']).count()
 unfälle_bundesland = pd.DataFrame(unfälle_bundesland['AGS']).rename(columns={'AGS':'Anzahl der Unfälle'})
@@ -75,7 +63,7 @@ ax.tick_params(axis='x', labelsize = 20)
 ax.tick_params(axis='y', labelsize = 20)
 plt.show()
 
-
+#Korrelation Alkoholkonsum und Unfallanzahl
 def corr_unfallbeteiligte(df_unfallatlas):
     data = pd.read_csv('data/exog_data/Externe_Unfalldaten_m.csv', sep = ';')
     data['day'] = 1
@@ -94,7 +82,6 @@ def corr_unfallbeteiligte(df_unfallatlas):
     data_3 = data_3.drop(['Fehlverhalten der Fahrzeugführer und Fußgänger'], axis = 1)
     data_3 = pd.DataFrame(data_3.sum(axis=1))
 
-
     # Erstellung des AGS.
     ags = '09162000'
     df_unfallatlas['AGS'] = df_unfallatlas['ULAND'].astype(str).str.zfill(2) \
@@ -107,8 +94,6 @@ def corr_unfallbeteiligte(df_unfallatlas):
     df_number_of_accidents = pd.DataFrame(df_number_of_accidents.set_index(pd.to_datetime(df_number_of_accidents[['year', 'month', 'day']])).resample('M')['Number of Accidents'].count())
     df_number_of_accidents.index = df_number_of_accidents.index.map(lambda t: t.replace(day = 1))
     df_number_of_accidents.index.freq = 'MS'
-
-    from sklearn.preprocessing import MinMaxScaler
 
     scaler = MinMaxScaler()
     df_number_of_accidents['Anzahl der Unfälle'] = scaler.fit_transform(df_number_of_accidents)
@@ -132,6 +117,7 @@ def corr_unfallbeteiligte(df_unfallatlas):
 
 #corr_unfallbeteiligte(df_unfallatlas)
 
+#Plot: Anzahl der Unfälle pro Unfallkategorie in Bayern
 df_unfallkategorie = df_unfallatlas.loc[df_unfallatlas['ULAND'] == 9]
 df_unfallkategorie = df_unfallkategorie.groupby(df_unfallkategorie['UKATEGORIE']).count()
 df_unfallkategorie = pd.DataFrame(df_unfallkategorie['AGS']).rename(columns={'AGS':'Anzahl der Unfälle'})
@@ -151,4 +137,49 @@ ax.tick_params(axis='x', labelsize = 18)
 ax.tick_params(axis='y', labelsize = 20)
 plt.show()
 
-print()
+#Darstellung der Wochentage mit den meisten Unfällen pro Jahr.
+accidents_munich = df_unfallatlas.loc[df_unfallatlas['AGS'] == 9162000]
+
+weekdays = ['Sonntag','Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag']
+accweekday = accidents_munich.groupby(['UJAHR', 'UWOCHENTAG']).size()
+accweekday = accweekday.rename_axis(['UJAHR', 'UWOCHENTAG']).unstack('UWOCHENTAG')
+accweekday.columns = weekdays
+accweekday = accweekday[['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']]
+
+plt.figure(figsize=(15, 10))
+sns.heatmap(accweekday, cmap='plasma_r')
+plt.title('Anzahl der Unfälle nach Wochentagen pro Jahr in München', fontsize=25, pad=20)
+plt.ylabel('')
+plt.xticks(fontsize=15)
+plt.yticks(fontsize=15)
+plt.show()
+
+#Darstellung der Wochentage mit den meisten Unfällen pro Jahr.
+weekdays = ['Sonntag','Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag']
+accweekday = accidents_munich.groupby(['UMONAT', 'UWOCHENTAG']).size()
+accweekday = accweekday.rename_axis(['UJAHR', 'UWOCHENTAG']).unstack('UWOCHENTAG')
+accweekday.columns = weekdays
+accweekday = accweekday[['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']]
+
+plt.figure(figsize=(15, 10))
+sns.heatmap(accweekday, cmap='plasma_r')
+plt.title('Anzahl der Unfälle nach Wochentagen pro Monat in München', fontsize=25, pad=20)
+plt.ylabel('')
+plt.xticks(fontsize=15)
+plt.yticks(fontsize=15)
+plt.show()
+
+#Darstellung der Wochentage mit den meisten Unfällen pro Jahr.
+weekdays = ['Sonntag','Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag']
+accweekday = accidents_munich.groupby(['USTUNDE', 'UWOCHENTAG']).size()
+accweekday = accweekday.rename_axis(['UJAHR', 'UWOCHENTAG']).unstack('UWOCHENTAG')
+accweekday.columns = weekdays
+accweekday = accweekday[['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']]
+
+plt.figure(figsize=(15, 10))
+sns.heatmap(accweekday, cmap='plasma_r')
+plt.title('Anzahl der Unfälle nach Wochentagen pro Stunde in München', fontsize=25, pad=20)
+plt.ylabel('')
+plt.xticks(fontsize=15)
+plt.yticks(fontsize=15)
+plt.show()
