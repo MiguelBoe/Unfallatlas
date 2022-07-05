@@ -9,6 +9,10 @@ from imblearn.under_sampling import RandomUnderSampler, NearMiss
 
 #Für Abfrage-Funktion.__________________________________________________________________________________________________
 
+'''
+Erstellung verschiedener Dictionaries für das Verständnis über die Daten. Mit diesen Dictionaries und den nachfolgenden 
+Funktionen wurde die interaktive Anwendung erstellt.
+'''
 #Übersichtlichere Daten.
 tools = {0: 'Vorhersage der Unfallkategorie.', 1: 'Vorhersage der Anzahl der Unfälle für das Jahr 2021.'}
 
@@ -50,6 +54,13 @@ jaodernein = {
     1: 'Ja'
     }
 
+'''
+Die Funktion query_exception() ist für den Ablauf der interaktiven Anwendung besonders wichtig. Diese Funktion wird in dem 
+gesamten Abfrage-Prozess für die Vorhersage der Unfallkategorie verwendet. Der Funktion wird immer eine "message" übergeben, 
+also eine Abfrage und ein entsprechendes Dictionary. Die Funktion stellt dann sicher, dass der Nutzer auch eine zulässige 
+Eingabe tätigt. Ist dies nicht der Fall, wird die Abfrage wiederholt, mit dem Hinweis, dass der Nutzer nur eine der angegebenen 
+Optionen auswählen kann. Zudem werden die genannten Auswahloptionen erneut präsentiert.
+'''
 #Funktion für die Abfrage mit Exception Handling.
 def query_exception(dict, message):
 
@@ -72,13 +83,17 @@ def query_exception(dict, message):
                 print(f'{key} =', dict[key])
     return selection
 
+'''
+Die Funktion query() koordiniert die Abfrage, wobei die Informationen (Attribute) für die Prognose der Unfallkategorie vom
+Nutzer ermittelt werden. Die Informationen über den Zeitpunkt des Unfalls werden automatisch bei der Nutzung der FUnktion
+ermittelt. Diese beziehen sich auf den aktuellen Zeitpunkt. Als nächstes wird abgefragt, was bei dem Unfall geschehen ist.
+Dafür wird die Funktion query_exception() aufgerufen und die "message" sowie das entsprechende Dictionary dazu übergeben.
+Anschließend wird nach dem selben Prinzip abgefragt, wer an dem Unfall beteiligt ist. Nach der Abfrage der Informationen
+werden diese in einem DataFrame abgespeichert. Mit diesem wird in einem nächsten Schritt die Unfallkategorie prognostiziert.
+Davor wird jedoch zunächst eine kurze Zusammenfassung der eingegebene Informationen ausgegeben, wonach dann die Unfallkategorie,
+basierend auf der Vorhersage des Modells, angegeben wird.
+'''
 def query():
-
-    #Gemeinde
-    #ULAND = 9
-    #UREGBEZ = 1
-    #UKREIS = 62
-    #UGEMEINDE = 0
 
     #Zeitpunkt
     now = datetime.datetime.now()
@@ -123,11 +138,7 @@ def query():
     print('Unfallwochentag:\t', wochentage[UWOCHENTAG])
     #print('\nUnfallart:\t', arten[UART])
 
-    prediction = pd.DataFrame({#'ULAND': ULAND,
-                               #'UREGBEZ': UREGBEZ,
-                               #'UKREIS': UKREIS,
-                               #'UGEMEINDE': UGEMEINDE,
-                               'UMONAT': UMONAT,
+    prediction = pd.DataFrame({'UMONAT': UMONAT,
                                'USTUNDE': USTUNDE,
                                'UWOCHENTAG': UWOCHENTAG,
                                'UART': UART,
@@ -144,6 +155,13 @@ def query():
 
 #Für Vorhersage der schwere des Unfalls.________________________________________________________________________________
 
+'''
+Die Funktion visualization_ts() ist für die Visualisierung einer Zeitreihe (englisch: time series (ts)) von Nutzen. Diese
+Zeitreihe wird auf Basis des DataFrames df_number_of_accidents dargestellt, welcher für die Prognose der Unfallzahlen er-
+stellt wurde. Insgesamt wird in der Funktion einmal die Zeitreihe mit den vorhandenen Ist-Werten dargestellt (ab 2016) und
+die prognostizierte Zeitreihe von 2020 bis 2022 (Test-Set von 2020 bis 2021) dargestellt. Zudem wurde für die prognostizierte 
+Zeitreihe das Konfidenzband mit dargestellt.
+'''
 def visualization_ts(df_number_of_accidents, prediction):
 
     #Darstellung der TimeSeries.
@@ -169,6 +187,15 @@ def visualization_ts(df_number_of_accidents, prediction):
 
 #Für Vorhersage der Unfallkategorie.____________________________________________________________________________________
 
+'''
+Die Funktion train_test_divid() führt den Split des Datensatzes bei der Entwicklung der Modelle für die Vorhersage der Unfall-
+kategorie aus. Da mehrere Modelle trainiert wurden und dieser Split bei jedem Modell identisch ist, wurde die Funktion ausgelagert,
+damit diese immer wieder verwendet werden kann. Somit wird auch der Code etwas kürzer. Ein wichtiger Punkt in dieser Funktion ist
+der StandardScaler, welcher benutzt wird, um die Daten zu normalisieren. Dies dient in erster Linie für das Training der SVM.
+Allerdings schadet die Normalisierung nicht bei dem Training der anderen Modelle. Weshalb diese Normalisierung bei dem Training
+jedes Modells angwendet wird. Zudem wird in der train_test_divid()-Funktion noch die undersampling()-Funktion aufgerufen, 
+welche nachfolgend beschrieben wird.
+'''
 def train_test_divid(df_unfallatlas, undersampling_mode):
 
     # Definition von X und y.
@@ -187,6 +214,12 @@ def train_test_divid(df_unfallatlas, undersampling_mode):
 
     return X_train, X_test, y_train, y_test
 
+'''
+Da die Datenpunkte für die Vorhersage der Unfallkategorie unausgeglichen sind, wurde diese undersampling()-Funktion implementiert,
+um eine Gleichverteilung bezüglich der Unfallkategorie zu erzeugen. Der Funktion wird neben den Daten der undersampling_mode-
+Parameter übergeben. Dieser wird im Konfigurationsbereich definiert und es kann damit gesteuert werden, wie das Undersampling
+erfolgen soll. Das Undersampling kann jedoch auch komplett ausgeschaltet werden, indem der Parameter auf False gesetzt wird.
+'''
 def undersampling(X_train, y_train, undersampling_mode):
 
     # Undersampling.

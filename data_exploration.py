@@ -10,6 +10,12 @@ from sklearn.preprocessing import MinMaxScaler
 print('\nWillkommen beim Data-Exploration Bereich des Accident Prediction Tools!')
 print('\nEinlesen und Verarbeiten der Daten ...')
 
+'''
+Im folgenden Abschnitt werden die Unfalldaten eingelesen. Dabei wird mit Exception Handling geprüft, ob bereits eine auf-
+bereitete CSV-Datei (df_unfallatlas.csv) mit den Daten vorhanden ist. Ist dies der Fall, wird diese Datei einfach eingelesen.
+Wenn nicht, werden die einzelnen CSV-Dateien mit den Rohdaten eingelesen und dann mit verschiedenen Funktionen aufbereitet. 
+Diese Funktionen befinden sich in der Datei data_preprocessing und werden dort beschrieben.
+'''
 #Einlesen und Verarbeiten der Daten.
 try:
     df_unfallatlas = pd.read_csv('data/df_unfallatlas.csv', delimiter=';', low_memory=False)

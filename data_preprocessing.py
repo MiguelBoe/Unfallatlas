@@ -13,6 +13,9 @@ import matplotlib
 
 # Einlesen der Daten.___________________________________________________________________________________________________
 
+'''
+Einlesen der Rohdaten, bzw. der einzelnen Datensätze der Unfalldaten und Zusammenfügen zu einem großen DataFrame.
+'''
 def get_data():
 
     # Einlesen der Daten und Verknüpfung in einem DataFrame.
@@ -33,6 +36,13 @@ df_unfallatlas = get_data()
 
 # Aufbereitung der Daten._______________________________________________________________________________________________
 
+'''
+Aufbereitung des Datensatzes. Anpassung der Indizes. Zusammenfügen der Spalten, die gleiche Inhalte haben, aber aufgrund
+verschiedener Bezeichnungen in den einzelnen Jahren getrennt wurden. Zudem Entfernung von Attributen ohne einen nennens-
+werten Nutzen. Erzeugung einer neuen Spalte mit dem AGS, welcher aus zugehöriogen Daten zusammengesetzt wurde. Umbenennung
+der Koordinaten-Spalten und Formatierung der Daten ins amerikanische Format (Kommata zu Punkten). Anschließend Sortierung 
+der Spalten.
+'''
 def preprocessing(df_unfallatlas):
 
     # Aktualisierung des Index.
@@ -77,6 +87,23 @@ df_unfallatlas = preprocessing(df_unfallatlas = df_unfallatlas)
 
 # Prediction IstGkfz.___________________________________________________________________________________________________
 
+'''
+In em Datensatz waren nun nur noch fehlende Werte in der Spalte IstGkfz enthalten. Diese fehlenden Werte sollten ergänzt
+werden. Um dies zu erreichen, wurde ein Decision Tree Klassifikationsmodell trainiert, welches anhand der restlichen Attribute
+prognostiziert, ob an dem Unfall ein Gkfz beteiligt war oder nicht. Grund für das Fehlen der Werte ist, dass die Information
+ob ein Gkfz an den Unfall beteiligt war oder nicht in manchen Jahren in der Spalte IstSonstige erfasst wurde. Somit wurden 
+zunächst in allen Zeilen, in welchen in der Spalte IstSonstige eine Null steht, auch bei IstGkfz eine Null ergänzt, da hier 
+mit 100 prozentiger Sicherheit kein Gkfz am Unfall beteiligt war. Somit mussten nur noch die Zeilen prognostiziert werden,
+ich welchen in der Spalte IstSonstige eine 1 stand. Dies wurde gemacht und somit wurden alle fehlenden Werte in dem Datensatz
+ergänzt. Die Genauigkeit der Methode war sehr gut, was bei der Validierung des Modells festgestellt werden konnte. Der Accuracy
+Score lag bei über 99 %. Nach der erfolgreichen Validierung des Modells wurden die fehlenden IstGkfz-Werte im Datensatz 
+prognostiziert und ersetzt. Nun war das Problem, dass in manchen Zeilen bei IstGkfz und IstSonstige ei-ne 1 erfasst wurde. 
+Dabei kann es einerseits sein, dass sowohl ein Güterkraftfahrzeug, als auch ein sonstiges Fahrzeug an dem Unfall beteiligt war. 
+Andererseits kann es jedoch auch sein, dass ein Güter-kraftfahrzeug hier doppelt erfasst wurde. Um letzteres auszuschließen, 
+wurde in allen Zeilen, in denen bei IstGkfz und bei IstSonstige eine 1 erfasst wurde, der Eintrag in der Spalte IstSonstige 
+auf 0 gesetzt. Dadurch kam es jedoch zu einer Verfälschung der Daten an den Stellen, bei denen sowohl ein Güter-kraftfahrzeug, 
+als auch ein Fahrzeug sonstiger Art beteiligt war, was bei dieser Methode jedoch in Kauf genommen werden musste. 
+'''
 def pred_IstGkfz(df_unfallatlas):
 
     # Erstellung eines Datensatzes zur Abschätzung der fehlenden IstGkfz für 2017.
@@ -121,6 +148,10 @@ df_unfallatlas = pred_IstGkfz(df_unfallatlas = df_unfallatlas)
 
 # Einlesen und Vorbereiten der exogenen Daten.__________________________________________________________________________
 
+'''
+In der Funktion get_wheater_data() wurden die Wetterdaten eingelesen und aufbereitet, sodass diese der Zeitreihe für die
+Prognose der Unfallzahlen hinzugefügt werden konnten.
+'''
 def get_wheater_data(wheater_data):
 
     wheater_data['Temperatur Mittelwert'] = wheater_data['Temperatur Mittelwert'].apply(lambda a: a.replace(",", ".")).astype(float)
@@ -135,6 +166,17 @@ def get_wheater_data(wheater_data):
 
 # Vorbereitung der Zeireihe und kurze Analyse.__________________________________________________________________________
 
+'''
+In der Funktion prepare_number_of_accidents() wird der DataFrame df_unfallatlas zu einer Zeitreihe formatiert, welche für
+die Prognose der Unfallzahlen genutzt werden. Zunächst wurden mit Hilfe des AGS lediglich die Unfalldaten für die Stadt 
+München herausgefiltert. Danach wurde eine Spalte mit dem Datum des Unfallmonats angelegt und ins datetime-Format umge-
+wandelt. Wenn im Konfigurationsbereich der visualization_mode aktiviert wurde, werden danach Plots dargestellt, welche be-
+stimmte Eigenschaften der Zeitreihe beschreiben. Dies ist einmal die Dekomposition der Zeitreihe sowie die Darstellung der
+Autocorrelation sowie der Partial Autocorrelation. Danach wurde die Zeitreihe dann mit dem ADFuller-Test auf Stationarität
+überprüft. Dabei kam heraus, dass die Zeitreihe nicht stationär ist. Aus diesem Grund wurde sich dazu entschieden, ein 
+SARIMAX-Modell für die Prognose der Unfallzahlen zu wählen, da dieses mit nicht stationären Zeitreihen umgehen kann.
+Anschließend wurden in der untenstehenden Funktion der Zeitreihe die Wetterdaten für die Stadt München hinzugefügt.
+'''
 def prepare_number_of_accidents(df_unfallatlas, ags, wheater_data_munich, visualization_mode):
 
     #Index to datetime. Allerdings Problem wegen des Tages. Dieser ist ja nicht angegeben. Habe für Testzwecke mal den Wochentag genommen.
@@ -174,6 +216,12 @@ def prepare_number_of_accidents(df_unfallatlas, ags, wheater_data_munich, visual
 
     return df_number_of_accidents, wheater_data_munich_2021
 
+'''
+In der Funktion add_exog_data() werden dem DataFrame df_unfallatlas die Wetterdaten für ganz Deutschland auf Bundesland-
+Ebene für die Prognose der Unfallkategorie hinzugefügt. Allerdings hat die Validierung gezeigt, dass die Genauigkeit des
+Modells durch die Hinzunahme der Daten nicht verbessert werden konnte. Aus diesem Grund, wird die Funktion nicht weiter 
+genutzt. Die Prognose der Unfallkategorie erfolgt also ohne exogene Daten.
+'''
 def add_exog_data(df_unfallatlas, wheater_data_ger):
 
     wheater_data_ger['UJAHR'] = wheater_data_ger.index.year

@@ -23,6 +23,13 @@ warnings.simplefilter("ignore", UserWarning)
 
 #SARIMA.________________________________________________________________________________________________________________
 
+'''
+In der grid_search()-Funktion wird mit Hilfe von Cross Validation die optimale Hyperparameterkombination für das SARIMAX-
+Modell ermittelt. Dafür wird für die Parameter p,d und q ein Lösungsraum vorgegeben. Der Algorithmus benutzt dann alle
+Parameterkombinationen aus und bewertet das Modell anhand des AIC-Wertes. Die Kombination mit dem niedrigsten AIC bietet
+die beste Lösung. Die Parameterkombination wird dann in den Variablen bestParam und bestSParam abgespeichert und am Ende
+der Funktion zurückgegeben.
+'''
 #Algorithmus zur Bestimmung der optimalen Parameterkombination.
 def grid_search(y, x):
 
@@ -60,6 +67,11 @@ def grid_search(y, x):
 
     return bestAIC, bestParam, bestSParam
 
+'''
+In der sarima()-Funktion wird das SARIMAX-Modell anhand der besten Parameter (aus der grid_search-Funktion) trainiert. 
+Wenn der visualization_mode aktiviert ist, wird zusätzlich ein Diagnose-Plot angezeigt. Zurückgegeben wird am Ende der 
+Funktion, das SARIMAX-Modell.
+'''
 #Erstellung des Modells.
 def sarima(bestParam, bestSParam, visualization_mode, y, x):
 
@@ -77,8 +89,24 @@ def sarima(bestParam, bestSParam, visualization_mode, y, x):
     return sarima
 
 
+'''
+In diesem Abschnitt befinden sich die ganzen Modelle, welche für die Vorhersage der Unfallkategori definiert wurden. Da
+die Modelle vom Aufbau her überwiegend sehr ähnlich sind, wird nicht jedes Modell im einzelnen beschrieben. Lediglich die
+wichtige Punkte oder Funktionen werden beschrieben.
+'''
 #Vorhersage der Unfallkategorie.________________________________________________________________________________________
 
+'''
+Das baseline_model() basiert auf einem naiven statistischen Mehrheitsverfahren, welches als Benchmark-Methode definiert wurde.
+Das Modell wurde also genutzt, um die weiteren Modelle besser vergleichen und validieren zu können. Das Ziel war es das 
+Baseline-Modell  zu schlagen. Das Modell wurde folgendermaßen entwickelt:
+zunächst wurde die X (Attribute) und y (Zielvariable) Variable festgelegt. Anschließend wurde der Datensatz in ein Training-
+und Test-Set geteilt. Danach wurden in der For-Schleife für jeden Datenpunkt des Test-Sets, die identischen Datenpunkte 
+herausgesucht. Nun hat der Algorithmus geschaut, welche Unfallkategorie am häufigsten bei diesen ansonsten identischen Datenpunkten
+vorkommt und prognostiziert diese Kategorie als die Unfallkategorie des betrachteten Unfalls. Die Ergebnisse werden dann
+in einem DataFrame abgespeichert und am Ende mit den Ist-Werten verglichen. Validiert wurde das Modell mit dem classification_report()
+anhand der Ergebnisse des Modells im Vergleich zu den Ist-Werten. Die Ergebnisse dessen, lassen sich der Hausarbeit entnehmen. 
+'''
 #Naives statistisches Mehrheitsverfahren ohne Undersampling als Baseline Modell.
 def baseline_model(df_unfallatlas):
 
@@ -121,6 +149,11 @@ def baseline_model(df_unfallatlas):
 
     return baseline_clf_report
 
+'''
+Die Funktion statistical_determination_accident_severity() dient zu Bestimmung der Wahrscheinlichkeit der Unfallkategorien
+bassierend auf einer Abfrage. Wenn es keine Datenpunkte gibt, welche identisch mit der Abfrage sind, wird die Funktion nicht
+ausgeführt. Dies wird vorab bestimmt.
+'''
 def statistical_determination_accident_severity(df_unfallatlas, prediction):
 
     accident_severity = df_unfallatlas[(df_unfallatlas['UMONAT'] == prediction['UMONAT'][0]) &
@@ -136,6 +169,18 @@ def statistical_determination_accident_severity(df_unfallatlas, prediction):
 
     return accident_severity
 
+'''
+Nachfolgend werden die verschiedenen Modelle für die Vorhersage der Unfallkategorie trainiert und validiert. Zur bessern Überschaubarkeit, 
+wurden ein paar selbst formulierte Funktionen verwendet, welche sich in der Datei utils.py befinden. Hierzu zählt beispielsweise die
+train_test_divid()-Funktion. Diese Hilfsfunktionen werden in der Datei utils.py erläutert. Weitesgehend sind die Modelle ähnlich aufgebaut, 
+was die Verständlichkeit dieser unterstützt. Besonders ist, dass nach dem Training eines der Modelle, das Modell direkt an entsprechender
+Stelle (definierter Pfad) abgespeichert wird. Somit kann das trainierte Modell bei der erneuten Ausführung einfach geladen und genutzt
+werden und es muss nicht erneut trainiert werden. Die einzelnen Modelle unterscheiden sich an ein paar Stellen. Und zwar wurden
+zum Beispiel bei dem Training einiger Modelle Klassengewichte verwendet. Bei anderen jedoch nicht, da dies nur zu schlechteren Ergebnissen
+geführt hat. Zudem kann auch nicht für jedes Modell der selbe undersampling_mode verwendet werden. Beispielsweise wurde 
+bei dem pred_accident_severity_nearest_neighbors() kein Undersampling angewendet, da sich dadurch die Ergebnisse bedeutend 
+verschlechtert hatten.
+'''
 def pred_accident_severity_decision_tree(df_unfallatlas, undersampling_mode):
 
     #Splitten der Daten in Test- und Training-Set.
