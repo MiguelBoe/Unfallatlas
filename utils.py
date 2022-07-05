@@ -10,8 +10,8 @@ from imblearn.under_sampling import RandomUnderSampler, NearMiss
 #Für Abfrage-Funktion.__________________________________________________________________________________________________
 
 '''
-Erstellung verschiedener Dictionaries für das Verständnis über die Daten. Mit diesen Dictionaries und den nachfolgenden 
-Funktionen wurde die interaktive Anwendung erstellt.
+Erstellung verschiedener Dictionaries für ein besseres Verständnis über die Daten. Mit diesen Dictionaries und den nach-
+folgenden Funktionen wurde die interaktive Anwendung erstellt.
 '''
 #Übersichtlichere Daten.
 tools = {0: 'Vorhersage der Unfallkategorie.', 1: 'Vorhersage der Anzahl der Unfälle für das Jahr 2021.'}
@@ -85,7 +85,7 @@ def query_exception(dict, message):
 
 '''
 Die Funktion query() koordiniert die Abfrage, wobei die Informationen (Attribute) für die Prognose der Unfallkategorie vom
-Nutzer ermittelt werden. Die Informationen über den Zeitpunkt des Unfalls werden automatisch bei der Nutzung der FUnktion
+Nutzer ermittelt werden. Die Informationen über den Zeitpunkt des Unfalls werden automatisch bei der Nutzung der Funktion
 ermittelt. Diese beziehen sich auf den aktuellen Zeitpunkt. Als nächstes wird abgefragt, was bei dem Unfall geschehen ist.
 Dafür wird die Funktion query_exception() aufgerufen und die "message" sowie das entsprechende Dictionary dazu übergeben.
 Anschließend wird nach dem selben Prinzip abgefragt, wer an dem Unfall beteiligt ist. Nach der Abfrage der Informationen

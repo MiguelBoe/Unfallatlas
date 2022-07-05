@@ -37,11 +37,13 @@ df_unfallatlas = get_data()
 # Aufbereitung der Daten._______________________________________________________________________________________________
 
 '''
-Aufbereitung des Datensatzes. Anpassung der Indizes. Zusammenfügen der Spalten, die gleiche Inhalte haben, aber aufgrund
-verschiedener Bezeichnungen in den einzelnen Jahren getrennt wurden. Zudem Entfernung von Attributen ohne einen nennens-
-werten Nutzen. Erzeugung einer neuen Spalte mit dem AGS, welcher aus zugehöriogen Daten zusammengesetzt wurde. Umbenennung
-der Koordinaten-Spalten und Formatierung der Daten ins amerikanische Format (Kommata zu Punkten). Anschließend Sortierung 
-der Spalten.
+Aufbereitung des Datensatzes: 
+- Anpassung der Indizes. 
+- Zusammenfügen der Spalten, die gleiche Inhalte haben, aber aufgrund verschiedener Bezeichnungen in den einzelnen Jahren getrennt wurden. 
+- Entfernung von Attributen ohne einen nennenswerten Nutzen. 
+- Erzeugung einer neuen Spalte mit dem AGS, welcher aus den zugehörigen Daten zusammengesetzt wurde. 
+- Umbenennung der Koordinaten-Spalten und Formatierung ins amerikanische Format (Kommata zu Punkten). 
+- Sortierung der Spalten.
 '''
 def preprocessing(df_unfallatlas):
 
@@ -89,7 +91,7 @@ df_unfallatlas = preprocessing(df_unfallatlas = df_unfallatlas)
 
 '''
 In em Datensatz waren nun nur noch fehlende Werte in der Spalte IstGkfz enthalten. Diese fehlenden Werte sollten ergänzt
-werden. Um dies zu erreichen, wurde ein Decision Tree Klassifikationsmodell trainiert, welches anhand der restlichen Attribute
+werden. Um dies zu erreichen, wurde ein Decision Tree-Klassifikationsmodell trainiert, welches anhand der restlichen Attribute
 prognostiziert, ob an dem Unfall ein Gkfz beteiligt war oder nicht. Grund für das Fehlen der Werte ist, dass die Information
 ob ein Gkfz an den Unfall beteiligt war oder nicht in manchen Jahren in der Spalte IstSonstige erfasst wurde. Somit wurden 
 zunächst in allen Zeilen, in welchen in der Spalte IstSonstige eine Null steht, auch bei IstGkfz eine Null ergänzt, da hier 
@@ -97,11 +99,11 @@ mit 100 prozentiger Sicherheit kein Gkfz am Unfall beteiligt war. Somit mussten 
 ich welchen in der Spalte IstSonstige eine 1 stand. Dies wurde gemacht und somit wurden alle fehlenden Werte in dem Datensatz
 ergänzt. Die Genauigkeit der Methode war sehr gut, was bei der Validierung des Modells festgestellt werden konnte. Der Accuracy
 Score lag bei über 99 %. Nach der erfolgreichen Validierung des Modells wurden die fehlenden IstGkfz-Werte im Datensatz 
-prognostiziert und ersetzt. Nun war das Problem, dass in manchen Zeilen bei IstGkfz und IstSonstige ei-ne 1 erfasst wurde. 
+prognostiziert und ersetzt. Nun war das Problem, dass in manchen Zeilen bei IstGkfz und IstSonstige eine 1 erfasst wurde. 
 Dabei kann es einerseits sein, dass sowohl ein Güterkraftfahrzeug, als auch ein sonstiges Fahrzeug an dem Unfall beteiligt war. 
-Andererseits kann es jedoch auch sein, dass ein Güter-kraftfahrzeug hier doppelt erfasst wurde. Um letzteres auszuschließen, 
+Andererseits kann es jedoch auch sein, dass ein Güterkraftfahrzeug hier doppelt erfasst wurde. Um letzteres auszuschließen, 
 wurde in allen Zeilen, in denen bei IstGkfz und bei IstSonstige eine 1 erfasst wurde, der Eintrag in der Spalte IstSonstige 
-auf 0 gesetzt. Dadurch kam es jedoch zu einer Verfälschung der Daten an den Stellen, bei denen sowohl ein Güter-kraftfahrzeug, 
+auf 0 gesetzt. Dadurch kam es jedoch zu einer Verfälschung der Daten an den Stellen, bei denen sowohl ein Güterkraftfahrzeug, 
 als auch ein Fahrzeug sonstiger Art beteiligt war, was bei dieser Methode jedoch in Kauf genommen werden musste. 
 '''
 def pred_IstGkfz(df_unfallatlas):
@@ -168,7 +170,7 @@ def get_wheater_data(wheater_data):
 
 '''
 In der Funktion prepare_number_of_accidents() wird der DataFrame df_unfallatlas zu einer Zeitreihe formatiert, welche für
-die Prognose der Unfallzahlen genutzt werden. Zunächst wurden mit Hilfe des AGS lediglich die Unfalldaten für die Stadt 
+die Prognose der Unfallzahlen genutzt werden konnte. Zunächst wurden mit Hilfe des AGS lediglich die Unfalldaten für die Stadt 
 München herausgefiltert. Danach wurde eine Spalte mit dem Datum des Unfallmonats angelegt und ins datetime-Format umge-
 wandelt. Wenn im Konfigurationsbereich der visualization_mode aktiviert wurde, werden danach Plots dargestellt, welche be-
 stimmte Eigenschaften der Zeitreihe beschreiben. Dies ist einmal die Dekomposition der Zeitreihe sowie die Darstellung der

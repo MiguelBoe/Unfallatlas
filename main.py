@@ -56,8 +56,8 @@ except:
 
 '''
 Im Abschnitt exogene Daten wird eine Funktion aufgerufen, welche in der Datei data_preprocessing.py abgespeichert ist und
-die exogenen Daten (Wetterdaten) aufbereitet. Da die Wetterdaten bei der Vorhersage der Unfallkategorie 
-nicht geholfen haben, wurde die Funktion zur Aufbereitung der Wetterdaten dafür deaktiviert und nicht weiterentwickelt.
+die exogenen Daten (Wetterdaten) aufbereitet. Da die Wetterdaten bei der Vorhersage der Unfallkategorie nicht geholfen haben, 
+wurde die Funktion zur Aufbereitung der Wetterdaten dafür deaktiviert und nicht weiterentwickelt.
 '''
 #Einlesen und verarbeiten der Wetterdaten.
 wheater_data_munich = get_wheater_data(wheater_data_munich)
@@ -167,7 +167,7 @@ elif tool == 1:
     Bei der Vorhersage der Unfallzahlen wird zunächst anhand des aufbereiteten Datensatzes und des AGS sowie der exogenen 
     Wetterdaten eine Zeitreihe erstellt. Die Unfallzahlen werden dabei auf Monatsbasis aggregiert. Dies geschieht in der 
     Funktion prepare_number_of_accidents(). Anschließend wird in der Funktion grid_search mit Hilfe eines GridSearch-
-    Algorithmus und Cross Validation die beste Hyperparameter-Kombination für das SARIMAX-Modell gesucht. Anschließend wird 
+    Algorithmus und Cross Validation die beste Hyperparameter-Kombination für das SARIMAX-Modell gesucht. Zulezuz wird 
     mit den gefundenen Parametern das SARIMAX-Modell trainiert.
     '''
     #Erstellung des Modells mit vorheriger Grid Search zur Definition der besten Parameter für das Modell.
@@ -187,7 +187,7 @@ elif tool == 1:
     '''
     Im nachfolgenden Abschnitt wurde das Modell validiert. Die Validierung erfolgte anhand der Maße MSE, MAE und MAPE. Dabei
     wurde überprüft, ob die Hinzunahme der exogenen Daten (Wetterdaten) das Ergebnis verbessert. Dies ist der Fall. Für die
-    Validierung wurde die länge des Trainig-Sets verkürzt, sodass das Modell mit unbekannten Daten validiert wurde. Anschließend
+    Validierung wurde die Länge des Trainig-Sets verkürzt, sodass das Modell mit unbekannten Daten validiert wurde. Anschließend
     wird die Prognose der Unfallzahlen auf Monatsbasis aggregiert für das Jahr 2021 ausgegeben. Zudem wird die Zeitreihe,
     inklusive der Prognose, in einem Plot visualisiert.
     '''
@@ -210,10 +210,10 @@ elif tool == 1:
     period_map = query_exception(dict = monate_map, message = message)
 
     '''
-    Anschließend können sich die historischen Unfallorte anhand der Koordinaten mit einer HeatMap auf OpenStreetMap angezeigt
-    werden. Vorab kann entschieden werden, für welchen Monat die Unfallorte angezeigt werden sollen. Es können aber auch alle
-    historischen Unfallorte angezeigt werden. Da die Unfallorte der Kategorien 1 und 2 am relevantesten sind, werden nur diese
-    in auf der Karte dargestellt.
+    Anschließend können sich die historischen Unfallorte anhand der Koordinaten mit einer Heatmap auf OpenStreetMap angezeigt
+    werden lassen. Vorab kann entschieden werden, für welchen Monat die Unfallorte angezeigt werden sollen. Es können aber 
+    auch alle historischen Unfallorte angezeigt werden. Da die Unfallorte der Kategorien 1 und 2 am relevantesten sind, werden 
+    nur diese auf der Karte dargestellt.
     '''
     #Vorbereitung des Datensatzes zur Darstellung der Unfallorte.
     if period_map == 0:

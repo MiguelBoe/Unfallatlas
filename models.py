@@ -25,8 +25,8 @@ warnings.simplefilter("ignore", UserWarning)
 
 '''
 In der grid_search()-Funktion wird mit Hilfe von Cross Validation die optimale Hyperparameterkombination für das SARIMAX-
-Modell ermittelt. Dafür wird für die Parameter p,d und q ein Lösungsraum vorgegeben. Der Algorithmus benutzt dann alle
-Parameterkombinationen aus und bewertet das Modell anhand des AIC-Wertes. Die Kombination mit dem niedrigsten AIC bietet
+Modell ermittelt. Dafür wird für die Parameter p,d und q ein Lösungsraum vorgegeben. Der Algorithmus probiert dann alle
+Parameterkombinationen aus und bewertet das Modell anhand des AIC-Werts. Die Kombination mit dem niedrigsten AIC bietet
 die beste Lösung. Die Parameterkombination wird dann in den Variablen bestParam und bestSParam abgespeichert und am Ende
 der Funktion zurückgegeben.
 '''
@@ -90,19 +90,19 @@ def sarima(bestParam, bestSParam, visualization_mode, y, x):
 
 
 '''
-In diesem Abschnitt befinden sich die ganzen Modelle, welche für die Vorhersage der Unfallkategori definiert wurden. Da
-die Modelle vom Aufbau her überwiegend sehr ähnlich sind, wird nicht jedes Modell im einzelnen beschrieben. Lediglich die
-wichtige Punkte oder Funktionen werden beschrieben.
+In diesem Abschnitt befinden sich alle Modelle, welche für die Vorhersage der Unfallkategori definiert wurden. Da die Modelle 
+vom Aufbau her überwiegend sehr ähnlich sind, wird nicht jedes Modell im einzelnen beschrieben. Lediglich die wichtigsten Punkte 
+und Funktionen werden beschrieben.
 '''
 #Vorhersage der Unfallkategorie.________________________________________________________________________________________
 
 '''
 Das baseline_model() basiert auf einem naiven statistischen Mehrheitsverfahren, welches als Benchmark-Methode definiert wurde.
 Das Modell wurde also genutzt, um die weiteren Modelle besser vergleichen und validieren zu können. Das Ziel war es das 
-Baseline-Modell  zu schlagen. Das Modell wurde folgendermaßen entwickelt:
-zunächst wurde die X (Attribute) und y (Zielvariable) Variable festgelegt. Anschließend wurde der Datensatz in ein Training-
+Baseline-Modell zu schlagen. Das Modell wurde folgendermaßen entwickelt:
+Zunächst wurde die X- (Attribute) und y- (Zielvariable) Variable festgelegt. Anschließend wurde der Datensatz in ein Training-
 und Test-Set geteilt. Danach wurden in der For-Schleife für jeden Datenpunkt des Test-Sets, die identischen Datenpunkte 
-herausgesucht. Nun hat der Algorithmus geschaut, welche Unfallkategorie am häufigsten bei diesen ansonsten identischen Datenpunkten
+herausgesucht. Nun hat der Algorithmus geschaut, welche Unfallkategorie am häufigsten bei diesen identischen Datenpunkten
 vorkommt und prognostiziert diese Kategorie als die Unfallkategorie des betrachteten Unfalls. Die Ergebnisse werden dann
 in einem DataFrame abgespeichert und am Ende mit den Ist-Werten verglichen. Validiert wurde das Modell mit dem classification_report()
 anhand der Ergebnisse des Modells im Vergleich zu den Ist-Werten. Die Ergebnisse dessen, lassen sich der Hausarbeit entnehmen. 
@@ -173,7 +173,7 @@ def statistical_determination_accident_severity(df_unfallatlas, prediction):
 Nachfolgend werden die verschiedenen Modelle für die Vorhersage der Unfallkategorie trainiert und validiert. Zur bessern Überschaubarkeit, 
 wurden ein paar selbst formulierte Funktionen verwendet, welche sich in der Datei utils.py befinden. Hierzu zählt beispielsweise die
 train_test_divid()-Funktion. Diese Hilfsfunktionen werden in der Datei utils.py erläutert. Weitesgehend sind die Modelle ähnlich aufgebaut, 
-was die Verständlichkeit dieser unterstützt. Besonders ist, dass nach dem Training eines der Modelle, das Modell direkt an entsprechender
+was die Verständlichkeit unterstützt. Besonders ist, dass nach dem Training eines der Modelle, das Modell direkt an entsprechender
 Stelle (definierter Pfad) abgespeichert wird. Somit kann das trainierte Modell bei der erneuten Ausführung einfach geladen und genutzt
 werden und es muss nicht erneut trainiert werden. Die einzelnen Modelle unterscheiden sich an ein paar Stellen. Und zwar wurden
 zum Beispiel bei dem Training einiger Modelle Klassengewichte verwendet. Bei anderen jedoch nicht, da dies nur zu schlechteren Ergebnissen
