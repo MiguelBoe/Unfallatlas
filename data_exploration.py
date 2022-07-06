@@ -12,11 +12,11 @@ warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 warnings.simplefilter('ignore', FutureWarning)
 
 #Begrüßung.
-print('\nWillkommen beim Data-Exploration Bereich des Accident Prediction Tools!')
+print('\nWillkommen bei dem Data Exploration-Bereich des Unfallvorhersage-Tools!')
 print('\nEinlesen und Verarbeiten der Daten ...')
 
 '''
-Im folgenden Abschnitt werden die Unfalldaten eingelesen. Dabei wird mit Exception Handling geprüft, ob bereits eine auf-
+In dem folgenden Abschnitt werden die Unfalldaten eingelesen. Dabei wird mit Exception Handling geprüft, ob bereits eine auf-
 bereitete CSV-Datei (df_unfallatlas.csv) mit den Daten vorhanden ist. Ist dies der Fall, wird diese Datei einfach eingelesen.
 Wenn nicht, werden die einzelnen CSV-Dateien mit den Rohdaten eingelesen und dann mit verschiedenen Funktionen aufbereitet. 
 Diese Funktionen befinden sich in der Datei data_preprocessing und werden dort beschrieben.
@@ -217,7 +217,7 @@ def feature_distribution(df_unfallatlas):
 feature_distribution(df_unfallatlas)
 
 
-#Korrelation Alkoholkonsum und Unfallanzahl bezogen auf den Unfalldaten für Deutschland.
+#Korrelation Alkoholkonsum und Unfallanzahl, bezogen auf die Unfalldaten für Deutschland.
 def correlation_alcohol_and_car_accidents(df_unfallatlas):
     data = pd.read_csv('data/exog_data/Externe_Unfalldaten_m.csv', sep = ';')
     data['day'] = 1

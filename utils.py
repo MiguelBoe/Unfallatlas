@@ -84,18 +84,18 @@ def query_exception(dict, message):
     return selection
 
 '''
-Die Funktion query() koordiniert die Abfrage, wobei die Informationen (Attribute) für die Prognose der Unfallkategorie vom
+Die Funktion query() koordiniert die Abfrage, wobei die Informationen (Attribute) für die Prognose der Unfallkategorie von dem
 Nutzer ermittelt werden. Die Informationen über den Zeitpunkt des Unfalls werden automatisch bei der Nutzung der Funktion
 ermittelt. Diese beziehen sich auf den aktuellen Zeitpunkt. Als nächstes wird abgefragt, was bei dem Unfall geschehen ist.
 Dafür wird die Funktion query_exception() aufgerufen und die "message" sowie das entsprechende Dictionary dazu übergeben.
-Anschließend wird nach dem selben Prinzip abgefragt, wer an dem Unfall beteiligt ist. Nach der Abfrage der Informationen
+Anschließend wird nach demselben Prinzip abgefragt, wer an dem Unfall beteiligt ist. Nach der Abfrage der Informationen
 werden diese in einem DataFrame abgespeichert. Mit diesem wird in einem nächsten Schritt die Unfallkategorie prognostiziert.
-Davor wird jedoch zunächst eine kurze Zusammenfassung der eingegebene Informationen ausgegeben, wonach dann die Unfallkategorie,
+Davor wird jedoch zunächst eine kurze Zusammenfassung der eingegebenen Informationen ausgegeben, wonach dann die Unfallkategorie,
 basierend auf der Vorhersage des Modells, angegeben wird.
 '''
 def query():
 
-    #Zeitpunkt
+    #Zeitpunkt.
     now = datetime.datetime.now()
     UMONAT = now.month
     USTUNDE = now.hour
@@ -106,7 +106,7 @@ def query():
     print(message, '\n')
     UART = query_exception(dict = arten, message = message)
 
-    #Unfallteilnehmer
+    #Unfallbeteiligte.
     message = '\nIst an dem Unfall ein Radfahrer beteiligt?'
     print(message, '\n')
     IstRad = query_exception(dict = jaodernein, message = message)
@@ -158,9 +158,9 @@ def query():
 '''
 Die Funktion visualization_ts() ist für die Visualisierung einer Zeitreihe (englisch: time series (ts)) von Nutzen. Diese
 Zeitreihe wird auf Basis des DataFrames df_number_of_accidents dargestellt, welcher für die Prognose der Unfallzahlen er-
-stellt wurde. Insgesamt wird in der Funktion einmal die Zeitreihe mit den vorhandenen Ist-Werten dargestellt (ab 2016) und
-die prognostizierte Zeitreihe von 2020 bis 2022 (Test-Set von 2020 bis 2021) dargestellt. Zudem wurde für die prognostizierte 
-Zeitreihe das Konfidenzband mit dargestellt.
+stellt wurde. Insgesamt wird in der Funktion einmal die Zeitreihe mit den vorhandenen Ist-Werten (ab 2016) und die prognostizierte 
+Zeitreihe von 2020 bis 2022 (Test-Set von 2020 bis 2021) dargestellt. Zudem wurde für die prognostizierte  Zeitreihe das 
+Konfidenzband mit abgebildet.
 '''
 def visualization_ts(df_number_of_accidents, prediction):
 
@@ -202,7 +202,7 @@ def train_test_divid(df_unfallatlas, undersampling_mode):
     X = df_unfallatlas.drop(['UKATEGORIE', 'lat', 'lon', 'UJAHR', 'UTYP1', 'AGS', 'ULICHTVERH', 'STRZUSTAND', 'ULAND', 'UREGBEZ', 'UGEMEINDE', 'UKREIS'], axis=1)
     y = df_unfallatlas['UKATEGORIE']
 
-    # Skalierung der Attribute, für bessere Performance.
+    # Skalierung der Attribute für bessere Performance.
     scaler = StandardScaler().fit(X)
     X = pd.DataFrame(scaler.transform(X))
 
@@ -216,8 +216,8 @@ def train_test_divid(df_unfallatlas, undersampling_mode):
 
 '''
 Da die Datenpunkte für die Vorhersage der Unfallkategorie unausgeglichen sind, wurde diese undersampling()-Funktion implementiert,
-um eine Gleichverteilung bezüglich der Unfallkategorie zu erzeugen. Der Funktion wird neben den Daten der undersampling_mode-
-Parameter übergeben. Dieser wird im Konfigurationsbereich definiert und es kann damit gesteuert werden, wie das Undersampling
+um eine Gleichverteilung bezüglich der Unfallkategorie zu erzeugen. Der Funktion wird neben den Daten auch der undersampling_mode-
+Parameter übergeben. Dieser wird in dem Konfigurationsbereich definiert und es kann damit gesteuert werden, wie das Undersampling
 erfolgen soll. Das Undersampling kann jedoch auch komplett ausgeschaltet werden, indem der Parameter auf False gesetzt wird.
 '''
 def undersampling(X_train, y_train, undersampling_mode):

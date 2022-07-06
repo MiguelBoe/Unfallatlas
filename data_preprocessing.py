@@ -14,7 +14,7 @@ import matplotlib
 # Einlesen der Daten.___________________________________________________________________________________________________
 
 '''
-Einlesen der Rohdaten, bzw. der einzelnen Datensätze der Unfalldaten und Zusammenfügen zu einem großen DataFrame.
+Einlesen der Rohdaten, bzw. der einzelnen Datensätze der Unfalldaten, und Zusammenfügen zu einem großen DataFrame.
 '''
 def get_data():
 
@@ -38,11 +38,11 @@ df_unfallatlas = get_data()
 
 '''
 Aufbereitung des Datensatzes: 
-- Anpassung der Indizes. 
+- Anpassung der Indexspalte. 
 - Zusammenfügen der Spalten, die gleiche Inhalte haben, aber aufgrund verschiedener Bezeichnungen in den einzelnen Jahren getrennt wurden. 
-- Entfernung von Attributen ohne einen nennenswerten Nutzen. 
+- Entfernung von Attributen, ohne einen nennenswerten Nutzen. 
 - Erzeugung einer neuen Spalte mit dem AGS, welcher aus den zugehörigen Daten zusammengesetzt wurde. 
-- Umbenennung der Koordinaten-Spalten und Formatierung ins amerikanische Format (Kommata zu Punkten). 
+- Umbenennung der Koordinaten-Spalten und Formatierung in das amerikanische Format (Kommata zu Punkten). 
 - Sortierung der Spalten.
 '''
 def preprocessing(df_unfallatlas):
@@ -90,15 +90,15 @@ df_unfallatlas = preprocessing(df_unfallatlas = df_unfallatlas)
 # Prediction IstGkfz.___________________________________________________________________________________________________
 
 '''
-In em Datensatz waren nun nur noch fehlende Werte in der Spalte IstGkfz enthalten. Diese fehlenden Werte sollten ergänzt
+In dem Datensatz waren nur noch fehlende Werte in der Spalte IstGkfz enthalten. Diese fehlenden Werte sollten ergänzt
 werden. Um dies zu erreichen, wurde ein Decision Tree-Klassifikationsmodell trainiert, welches anhand der restlichen Attribute
-prognostiziert, ob an dem Unfall ein Gkfz beteiligt war oder nicht. Grund für das Fehlen der Werte ist, dass die Information
-ob ein Gkfz an den Unfall beteiligt war oder nicht in manchen Jahren in der Spalte IstSonstige erfasst wurde. Somit wurden 
+prognostiziert, ob an dem Unfall ein Gkfz beteiligt war oder nicht. Grund für das Fehlen der Werte ist, dass die Information,
+ob ein Gkfz an den Unfall beteiligt war oder nicht, in manchen Jahren in der Spalte IstSonstige erfasst wurde. Somit wurden 
 zunächst in allen Zeilen, in welchen in der Spalte IstSonstige eine Null steht, auch bei IstGkfz eine Null ergänzt, da hier 
-mit 100 prozentiger Sicherheit kein Gkfz am Unfall beteiligt war. Somit mussten nur noch die Zeilen prognostiziert werden,
-ich welchen in der Spalte IstSonstige eine 1 stand. Dies wurde gemacht und somit wurden alle fehlenden Werte in dem Datensatz
+mit 100-prozentiger Sicherheit kein Gkfz am Unfall beteiligt war. Somit mussten nur noch die Zeilen prognostiziert werden,
+in welchen in der Spalte IstSonstige eine 1 stand. Dies wurde gemacht und somit wurden alle fehlenden Werte in dem Datensatz
 ergänzt. Die Genauigkeit der Methode war sehr gut, was bei der Validierung des Modells festgestellt werden konnte. Der Accuracy
-Score lag bei über 99 %. Nach der erfolgreichen Validierung des Modells wurden die fehlenden IstGkfz-Werte im Datensatz 
+Score lag bei rund 99 %. Nach der erfolgreichen Validierung des Modells wurden die fehlenden IstGkfz-Werte in dem Datensatz 
 prognostiziert und ersetzt. Nun war das Problem, dass in manchen Zeilen bei IstGkfz und IstSonstige eine 1 erfasst wurde. 
 Dabei kann es einerseits sein, dass sowohl ein Güterkraftfahrzeug, als auch ein sonstiges Fahrzeug an dem Unfall beteiligt war. 
 Andererseits kann es jedoch auch sein, dass ein Güterkraftfahrzeug hier doppelt erfasst wurde. Um letzteres auszuschließen, 
@@ -116,7 +116,7 @@ def pred_IstGkfz(df_unfallatlas):
     X = df_unfallatlas_istGkfz.drop(['IstGkfz'], axis=1)
     y = df_unfallatlas_istGkfz['IstGkfz']
 
-    # Splitten der Daten in Test- und Training-Set.
+    # Splitten der Daten in Training- und Test-Set.
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20)
 
     # Training der Daten.
@@ -129,17 +129,17 @@ def pred_IstGkfz(df_unfallatlas):
     score = accuracy_score(y_test, results)
     #print('\nAccuracy-Score des Modells:', round(score, 2))
 
-    # Validierung der Predictions in einem DataFrame
+    # Validierung der Predictions in einem DataFrame.
     results['IstGkfz'] = df_unfallatlas['IstGkfz']
     results.rename(columns={0: "pred"}, inplace=True)
     results.rename(columns={"IstGkfz": "test"}, inplace=True)
 
-    # Abschätzung der fehlenden IstGkfz-Werte für das Jahr 2017 mit dem Decision Tree Klassifikationsmodell.
+    # Abschätzung fehlender IstGkfz-Werte für das Jahr 2017 mit dem Decision Tree Klassifikationsmodell.
     df_unfallatlas_pred_gkfz = df_unfallatlas[df_unfallatlas['IstGkfz'].isnull()]
     df_unfallatlas_pred_gkfz = df_unfallatlas_pred_gkfz.drop('IstGkfz', axis=1)
     df_IstGkfz_2017 = pd.DataFrame(decision_tree_classification.predict(df_unfallatlas_pred_gkfz), index=df_unfallatlas_pred_gkfz.index)
 
-    # Ergänzung der fehlenden IstGkfz-Werte im DataFrame df_unfallatlas.
+    # Ergänzung fehlender IstGkfz-Werte in dem DataFrame df_unfallatlas.
     df_unfallatlas['IstGkfz'] = df_unfallatlas['IstGkfz'].fillna(df_IstGkfz_2017[0])
     df_unfallatlas.loc[(df_unfallatlas['UJAHR'] == 2017) & (df_unfallatlas['IstSonstige'] == 1) & (df_unfallatlas['IstGkfz'] == 1), 'IstSonstige'] = 0
     df_unfallatlas[['ULICHTVERH', 'STRZUSTAND', 'IstGkfz', 'IstSonstige']] = df_unfallatlas[['ULICHTVERH', 'STRZUSTAND', 'IstGkfz', 'IstSonstige']].astype('int64')
@@ -171,9 +171,9 @@ def get_wheater_data(wheater_data):
 '''
 In der Funktion prepare_number_of_accidents() wird der DataFrame df_unfallatlas zu einer Zeitreihe formatiert, welche für
 die Prognose der Unfallzahlen genutzt werden konnte. Zunächst wurden mit Hilfe des AGS lediglich die Unfalldaten für die Stadt 
-München herausgefiltert. Danach wurde eine Spalte mit dem Datum des Unfallmonats angelegt und ins datetime-Format umge-
-wandelt. Wenn im Konfigurationsbereich der visualization_mode aktiviert wurde, werden danach Plots dargestellt, welche be-
-stimmte Eigenschaften der Zeitreihe beschreiben. Dies ist einmal die Dekomposition der Zeitreihe sowie die Darstellung der
+München herausgefiltert. Danach wurde eine Spalte mit dem Datum des Unfallmonats angelegt und in das datetime-Format umge-
+wandelt. Wenn in dem Konfigurationsbereich der visualization_mode aktiviert wurde, werden danach Plots dargestellt, welche be-
+stimmte Eigenschaften der Zeitreihe beschreiben. Dies ist einmal die Dekomposition der Zeitreihe und die Darstellung der
 Autocorrelation sowie der Partial Autocorrelation. Danach wurde die Zeitreihe dann mit dem ADFuller-Test auf Stationarität
 überprüft. Dabei kam heraus, dass die Zeitreihe nicht stationär ist. Aus diesem Grund wurde sich dazu entschieden, ein 
 SARIMAX-Modell für die Prognose der Unfallzahlen zu wählen, da dieses mit nicht stationären Zeitreihen umgehen kann.
@@ -181,21 +181,21 @@ Anschließend wurden in der untenstehenden Funktion der Zeitreihe die Wetterdate
 '''
 def prepare_number_of_accidents(df_unfallatlas, ags, wheater_data_munich, visualization_mode):
 
-    #Index to datetime. Allerdings Problem wegen des Tages. Dieser ist ja nicht angegeben. Habe für Testzwecke mal den Wochentag genommen.
+    #Index to datetime. Allerdings gab es ein Problem wegen des Tages, da dieser nicht angegeben ist. Aus diesem Grund wurde der erste Tag des Monats gewählt.
     df_number_of_accidents = df_unfallatlas[(df_unfallatlas['AGS'] == ags)].reset_index(drop = True)
     df_number_of_accidents.rename(columns={'UJAHR': 'year', 'UMONAT': 'month', 'UWOCHENTAG': 'day', 'UKATEGORIE': 'Number of Accidents'},inplace=True)
     df_number_of_accidents = pd.DataFrame(df_number_of_accidents.set_index(pd.to_datetime(df_number_of_accidents[['year', 'month', 'day']])).resample('M')['Number of Accidents'].count())
     df_number_of_accidents.index = df_number_of_accidents.index.map(lambda t: t.replace(day = 1))
     df_number_of_accidents.index.freq = 'MS'
 
-    #Plot Dekomposition.
+    #Plot: Dekomposition.
     if visualization_mode:
         rcParams['figure.figsize'] = 15, 10
         decomposition = sm.tsa.seasonal_decompose(df_number_of_accidents['Number of Accidents'], model = 'additive')
         fig = decomposition.plot()
         plt.show()
 
-        #Plot ACF und PACF.
+        #Plot: ACF und PACF.
         plot_acf(df_number_of_accidents['Number of Accidents'])
         matplotlib.pyplot.show()
         plot_pacf(df_number_of_accidents['Number of Accidents'], method='ywm')
@@ -221,8 +221,8 @@ def prepare_number_of_accidents(df_unfallatlas, ags, wheater_data_munich, visual
 '''
 In der Funktion add_exog_data() werden dem DataFrame df_unfallatlas die Wetterdaten für ganz Deutschland auf Bundesland-
 Ebene für die Prognose der Unfallkategorie hinzugefügt. Allerdings hat die Validierung gezeigt, dass die Genauigkeit des
-Modells durch die Hinzunahme der Daten nicht verbessert werden konnte. Aus diesem Grund, wird die Funktion nicht weiter 
-genutzt. Die Prognose der Unfallkategorie erfolgt also ohne exogene Daten.
+Modells durch die Hinzunahme der Daten nicht verbessert werden konnte. Aus diesem Grund wird die Funktion nicht weiter 
+genutzt. Die Prognose der Unfallkategorie erfolgt demnach ohne exogene Daten.
 '''
 def add_exog_data(df_unfallatlas, wheater_data_ger):
 

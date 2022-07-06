@@ -24,7 +24,7 @@ model_accident_severity = 'random_forest_model' #decision_tree_model, random_for
 undersampling_mode = 'random' #random, nearmiss, False
 
 '''
-Einlesen der exogenen Daten (Wetterdaten). Benutzt wurden lediglich die Wetterdaten der Stadt München, für die Vorhersage
+Einlesen der exogenen Daten (Wetterdaten). Benutzt wurden lediglich die Wetterdaten der Stadt München für die Vorhersage
 der Unfallzahlen. Die Wetterdaten, welche sich auf ganz Deutschland beziehen, haben nicht bei der Vorhersage der Unfall-
 kategorie geholfen.
 '''
@@ -39,7 +39,7 @@ print('##################################################\n')
 print('Einlesen und verarbeiten der Daten ...')
 
 '''
-Im nächsten Abschnitt werden die Unfalldaten eingelesen. Dabei wird mit Exception Handling geprüft, ob bereits eine auf-
+In dem nächsten Abschnitt werden die Unfalldaten eingelesen. Dabei wird mit Exception Handling geprüft, ob bereits eine auf-
 bereitete CSV-Datei (df_unfallatlas.csv) mit den Daten vorhanden ist. Ist dies der Fall, wird diese Datei einfach eingelesen.
 Wenn nicht, werden die einzelnen CSV-Dateien mit den Rohdaten eingelesen und dann mit verschiedenen Funktionen aufbereitet. 
 Diese Funktionen befinden sich in der Datei data_preprocessing und werden dort beschrieben.
@@ -59,7 +59,7 @@ Als nächstes wird die Funktion get_wheater_data() aufgerufen, welche in der Dat
 die exogenen Daten (Wetterdaten) aufbereitet. Da die Wetterdaten für ganz Deutschland nicht bei der Vorhersage der Unfallkategorie 
 geholfen haben, wurde die Funktion zur Aufbereitung der Wetterdaten deaktiviert und nicht weiterentwickelt.
 '''
-#Einlesen und verarbeiten der Wetterdaten.
+#Einlesen und Verarbeiten der Wetterdaten.
 wheater_data_munich = get_wheater_data(wheater_data_munich)
 #wheater_data_ger = get_wheater_data(wheater_data_ger)
 
@@ -69,7 +69,7 @@ print('Daten verarbeitet!')
 
 '''
 Beginn der interaktiven Anwendung. Als erstes wird der Nutzer danach gefragt, was er tun will. Er kann dabei mit einer binären
-Entscheidung reagieren. Bei 0 wählt er die Vorhersage der schwere eines Unfalls und bei 1 die Vorhersage der Anzahl der Unfälle 
+Entscheidung reagieren. Bei 0 wählt er die Vorhersage der Schwere eines Unfalls und bei 1 die Vorhersage der Anzahl der Unfälle 
 für das Jahr 2021. Damit der Nutzer keine falschen Eingaben tätigen kann, werden mit Hilfe der Funktion query_exception()
 fehlerhafte Eingaben abgefangen. Diese Funktion ist in der Datei utils.py abgespeichert.
 '''
@@ -80,23 +80,23 @@ tool = query_exception(dict = tools, message = message)
 
 if tool == 0:
     print('\n#####################################')
-    print('Vorhersage der schwere eines Unfalls.')
+    print('Vorhersage der Schwere eines Unfalls.')
     print('#####################################\n')
     print('Erstellung des Modells ...\n')
 
     '''
-    In der Funktion baseline_model wird die Baseline Methode validiert. Da dies lediglich einmal erfolgen musste, wurde
+    In der Funktion baseline_model() wird die Baseline Methode validiert. Da dies lediglich einmal erfolgen musste, wurde
     diese Funktion deaktiviert. Die Funktion befindet sich in der models.py-Datei, in welcher diese genauer erklärt wird.
     '''
     #Validierung des Baseline Modells.
     #baseline_clf_report = baseline_model(df_unfallatlas)
 
     '''
-    Im Abschnitt "Laden des Modells" wird mit Exception Handling versucht ein bereits erlerntes Modell einzulesen, um dieses
+    In dem Abschnitt "Laden des Modells" wird mit Exception Handling versucht ein bereits erlerntes Modell einzulesen, um dieses
     für die Vorhersage der Unfallkategorie zu nutzen. Das erneute Training eines Modells kann nämlich etwas Zeit in Anspruch
     nehmen. Wenn jedoch noch kein Modell trainiert und abgespeichert wurde, wird mit Hilfe einer der untenstehenden Funktionen
-    ein Modell trainiert. Beziehungsweise das Modell, welches oben im Konfigurationsbereich bestimmt wurde. Nach dem Training 
-    wird das Modell dann als SAV-Datei abgespeichert, damit bei der erneuten Ausfühtung der Vorhersage, das Tool nicht erneut
+    ein Modell trainiert. Beziehungsweise das Modell, welches oben in dem Konfigurationsbereich bestimmt wurde. Nach dem Training 
+    wird das Modell dann als SAV-Datei abgespeichert, damit bei der erneuten Ausführung der Vorhersage das Tool nicht erneut
     trainiert werden muss.
     '''
     #Laden des Modells.
@@ -115,14 +115,14 @@ if tool == 0:
             model = pred_accident_severity_svm(df_unfallatlas, undersampling_mode)
 
     '''
-    Im Abschnitt "Abfrage der Unfalldaten" wird die Funktion query() ausgeführt, mit welcher die Unfallinformationen abgefragt
+    In dem Abschnitt "Abfrage der Unfalldaten" wird die Funktion query() ausgeführt, mit welcher die Unfallinformationen abgefragt
     werden. Diese Funktion ist in der Datei utils.py abgespeichert und wird dort erklärt. 
     '''
     #Abfrage der Unfalldaten.
     prediction = query()
 
     '''
-    Nachfolgend werden anhand eines statistischen Verfahrens basierend auf der Abfrage und den historischen Unfalldaten 
+    Nachfolgend werden anhand eines statistischen Verfahrens, basierend auf der Abfrage und den historischen Unfalldaten, 
     die Wahrscheinlichkeiten der Unfallkategorien ermittelt. Diese Wahrscheinlichkeiten werden allerdings nur berechnet, 
     wenn es Datenpunkte gibt, welche exakt den Abfrageparametern entsprechen. Ist dies der Fall, werden die Wahrscheinlich-
     keiten der Unfallkategorien zu der Abfrage ausgegeben. Wenn dies nicht der Fall ist, wird lediglich die Unfallkategorie 
@@ -154,7 +154,7 @@ if tool == 0:
         #Bestimmung der Unfallkategorie.
         accident_severity = model.predict(prediction)
 
-        #Ausgabe der Unfallkategorie
+        #Ausgabe der Unfallkategorie.
         print('\nUnfallkategorie:\t', kategorien[accident_severity[0]])
         print('################################################\n')
 
@@ -170,13 +170,13 @@ elif tool == 1:
     Algorithmus und Cross Validation die beste Hyperparameter-Kombination für das SARIMAX-Modell gesucht. Zuletzt wird 
     mit den gefundenen Parametern das SARIMAX-Modell trainiert.
     '''
-    #Erstellung des Modells mit vorheriger Grid Search zur Definition der besten Parameter für das Modell.
+    #Erstellung des Modells mit vorheriger GridSearch zur Definition der besten Parameter für das Modell.
     df_number_of_accidents, wheater_data_munich_2021 = prepare_number_of_accidents(df_unfallatlas, ags, wheater_data_munich, visualization_mode)
     bestAIC, bestParam, bestSParam = grid_search(y = df_number_of_accidents['Number of Accidents'], x = df_number_of_accidents[model_features])
     sarima = sarima(bestParam, bestSParam, visualization_mode, y = df_number_of_accidents['Number of Accidents'], x = df_number_of_accidents[model_features])
 
     '''
-    Nach dem Trainig des Modells werden anhand der Zeitreihe und mit Hilfe des Modells die Unfallzahlen für das Jahr 2021 berechnet.
+    Nach dem Trainig des Modells werden, anhand der Zeitreihe und mit Hilfe des Modells, die Unfallzahlen für das Jahr 2021 berechnet.
     '''
     #Vorhersage der Anzahl der Unfälle für das Jahr 2021.
     pred_start, pred_end = str(np.min(df_number_of_accidents.index) + relativedelta(months = 48)), str(np.max(df_number_of_accidents.index) + relativedelta(months=12))
@@ -185,13 +185,13 @@ elif tool == 1:
     df_number_of_accidents = pd.DataFrame(df_number_of_accidents).rename(columns = {0: 'Number of Accidents'})
 
     '''
-    Im nachfolgenden Abschnitt wurde das Modell validiert. Die Validierung erfolgte anhand der Maße MSE, MAE und MAPE. Dabei
+    In dem nachfolgenden Abschnitt wurde das Modell validiert. Die Validierung erfolgte anhand der Maße MSE, MAE und MAPE. Dabei
     wurde überprüft, ob die Hinzunahme der exogenen Daten (Wetterdaten) das Ergebnis verbessert. Dies ist der Fall. Für die
     Validierung wurde die Länge des Training-Sets verkürzt, sodass das Modell mit unbekannten Daten validiert wurde. Anschließend
     wird die Prognose der Unfallzahlen auf Monatsbasis aggregiert für das Jahr 2021 ausgegeben. Zudem wird die Zeitreihe,
     inklusive der Prognose, in einem Plot visualisiert.
     '''
-    #Validierung des SARIMAX Modells anhand des MSE und MAE bezogen auf das Jahr 2020. Vergleich der Scores mit dem Modell ohne exogene Variablen.
+    #Validierung des SARIMAX Modells anhand des MSE, des MAE und des MAPE, bezogen auf das Jahr 2020. Vergleich der Scores mit dem Modell ohne exogene Variablen.
     mse_value = round(mean_squared_error(df_number_of_accidents['Number of Accidents'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
     mae_value = round(mean_absolute_error(df_number_of_accidents['Number of Accidents'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
     mape_value = round(mean_absolute_percentage_error(df_number_of_accidents['Number of Accidents'].loc[df_number_of_accidents.index.year == 2020], prediction.predicted_mean.head(12)), 2)
@@ -203,14 +203,14 @@ elif tool == 1:
     #Visualisierung der Zeitreihe inklusive der Prognose der Unfallzahlen.
     visualization_ts(df_number_of_accidents, prediction)
 
-    print('\nSie können sich nun eine Map anzeigen lassen, in welcher die geährlichsten Unfallstellen in München dargstellt sind.')
+    print('\nSie können sich nun eine Map anzeigen lassen, in welcher die gefährlichsten Unfallstellen in München dargstellt sind.')
 
-    message = 'Die gefärhrlichsten Unfallstellen können sie für einen bestimmten Monat betrachten oder für das ganze Jahr:'
+    message = 'Die gefärhrlichsten Unfallstellen können Sie für einen bestimmten Monat betrachten, oder für das ganze Jahr:'
     print(message, '\n')
     period_map = query_exception(dict = monate_map, message = message)
 
     '''
-    Anschließend können sich die historischen Unfallorte anhand der Koordinaten mit einer Heatmap auf OpenStreetMap angezeigt
+    Anschließend können sich die historischen Unfallorte, anhand der Koordinaten mit einer Heatmap, auf OpenStreetMap angezeigt
     werden lassen. Vorab kann entschieden werden, für welchen Monat die Unfallorte angezeigt werden sollen. Es können aber 
     auch alle historischen Unfallorte angezeigt werden. Da die Unfallorte der Kategorien 1 und 2 am relevantesten sind, werden 
     nur diese auf der Karte dargestellt.
