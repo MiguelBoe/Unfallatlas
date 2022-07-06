@@ -18,8 +18,8 @@ Zunächst werden in dem Konfigurationsabschnitt die wesentlichen Parameter für 
 #Konfiguration
 selection = None
 ags = '09162000' #München
-model_features = ['Temperatur Mittelwert', 'Niederschlagmenge in Summe Liter pro qm', 'Sonnenscheindauer in Summe in Stunden'] #Für SARIMAX
-visualization_mode = False #Bei True werden zusätzliche Plots generiert.
+model_features = ['Temperatur Mittelwert', 'Niederschlagmenge in Summe Liter pro qm', 'Sonnenscheindauer in Summe in Stunden'] #Für das SARIMAX-Modell
+visualization_mode = False #Bei True werden zusätzliche Plots generiert
 model_accident_severity = 'random_forest_model' #decision_tree_model, random_forest_model, gaussian_nb_model, svm_model, knn_model
 undersampling_mode = 'random' #random, nearmiss, False
 
@@ -55,9 +55,9 @@ except:
     df_unfallatlas.to_csv('data/df_unfallatlas.csv', sep=  ';', index=False)
 
 '''
-Im Abschnitt exogene Daten wird eine Funktion aufgerufen, welche in der Datei data_preprocessing.py abgespeichert ist und
-die exogenen Daten (Wetterdaten) aufbereitet. Da die Wetterdaten bei der Vorhersage der Unfallkategorie nicht geholfen haben, 
-wurde die Funktion zur Aufbereitung der Wetterdaten dafür deaktiviert und nicht weiterentwickelt.
+Als nächstes wird die Funktion get_wheater_data() aufgerufen, welche in der Datei data_preprocessing.py abgespeichert ist und
+die exogenen Daten (Wetterdaten) aufbereitet. Da die Wetterdaten für ganz Deutschland nicht bei der Vorhersage der Unfallkategorie 
+geholfen haben, wurde die Funktion zur Aufbereitung der Wetterdaten deaktiviert und nicht weiterentwickelt.
 '''
 #Einlesen und verarbeiten der Wetterdaten.
 wheater_data_munich = get_wheater_data(wheater_data_munich)
@@ -70,7 +70,7 @@ print('Daten verarbeitet!')
 '''
 Beginn der interaktiven Anwendung. Als erstes wird der Nutzer danach gefragt, was er tun will. Er kann dabei mit einer binären
 Entscheidung reagieren. Bei 0 wählt er die Vorhersage der schwere eines Unfalls und bei 1 die Vorhersage der Anzahl der Unfälle 
-für das Jahr 2021. Damit der Nutzer keine falschen Eingaben tätigen kann, werden mit Hilfe der Funktion query_exception
+für das Jahr 2021. Damit der Nutzer keine falschen Eingaben tätigen kann, werden mit Hilfe der Funktion query_exception()
 fehlerhafte Eingaben abgefangen. Diese Funktion ist in der Datei utils.py abgespeichert.
 '''
 #Auswahl der Vorhersage.
@@ -166,8 +166,8 @@ elif tool == 1:
     '''
     Bei der Vorhersage der Unfallzahlen wird zunächst anhand des aufbereiteten Datensatzes und des AGS sowie der exogenen 
     Wetterdaten eine Zeitreihe erstellt. Die Unfallzahlen werden dabei auf Monatsbasis aggregiert. Dies geschieht in der 
-    Funktion prepare_number_of_accidents(). Anschließend wird in der Funktion grid_search mit Hilfe eines GridSearch-
-    Algorithmus und Cross Validation die beste Hyperparameter-Kombination für das SARIMAX-Modell gesucht. Zulezuz wird 
+    Funktion prepare_number_of_accidents(). Anschließend wird in der Funktion grid_search() mit Hilfe eines GridSearch-
+    Algorithmus und Cross Validation die beste Hyperparameter-Kombination für das SARIMAX-Modell gesucht. Zuletzt wird 
     mit den gefundenen Parametern das SARIMAX-Modell trainiert.
     '''
     #Erstellung des Modells mit vorheriger Grid Search zur Definition der besten Parameter für das Modell.
@@ -187,7 +187,7 @@ elif tool == 1:
     '''
     Im nachfolgenden Abschnitt wurde das Modell validiert. Die Validierung erfolgte anhand der Maße MSE, MAE und MAPE. Dabei
     wurde überprüft, ob die Hinzunahme der exogenen Daten (Wetterdaten) das Ergebnis verbessert. Dies ist der Fall. Für die
-    Validierung wurde die Länge des Trainig-Sets verkürzt, sodass das Modell mit unbekannten Daten validiert wurde. Anschließend
+    Validierung wurde die Länge des Training-Sets verkürzt, sodass das Modell mit unbekannten Daten validiert wurde. Anschließend
     wird die Prognose der Unfallzahlen auf Monatsbasis aggregiert für das Jahr 2021 ausgegeben. Zudem wird die Zeitreihe,
     inklusive der Prognose, in einem Plot visualisiert.
     '''
