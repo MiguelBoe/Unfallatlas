@@ -132,7 +132,7 @@ def query():
     IstSonstige = query_exception(dict = jaodernein, message = message)
 
     print('\n###################################################')
-    print('Zeitpunkt des Unfalls in München:')
+    print('Zeitliche Informationen zu dem Verkehrsunfall:')
     print('Unfallmonat:\t\t', monate[UMONAT])
     print('Unfallstunde:\t\t', USTUNDE, 'Uhr')
     print('Unfallwochentag:\t', wochentage[UWOCHENTAG])
